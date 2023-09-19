@@ -1,0 +1,193 @@
+
+
+var lastSaveLocation = introduction
+var floweyRemembers = false
+var floweyFirstEncounterNotCleared = true
+
+
+introduction {
+
+    "You climbed a mountain that is famous for making people disappear. In hindsight, that might have been a bad idea."
+    "You stumbled and fell into a hole. It was quite a fall..."
+    "You wake up between flowers and moss. Somehow you're alright."
+
+    branch {
+
+        conditions {
+            lastSaveLocation != introduction
+            lastSaveLocation != floweysWorld
+        }
+
+        "Hey, there'a a save. What do you do?"
+
+        choices {
+            "Continue" goto lastSave
+            "Reset" {
+                 oncePerReset = true
+                 goto ruinsEntrance
+            }
+        }
+    }
+
+    "This DEFINITELY isn't an Undertale ripoff. And no, you can't name yourself." ->
+    choices {
+        "Begin" goto ruinsEntracnce
+    }
+}
+
+location ruinsEntrance {
+    "You woke up in this room. You can faintly see the sunlight filtering through from above. It's impossible to climb back out. There's an exit to the east, leading deeper into the mountain."
+
+    choices {
+        "Explore the room" {
+            "There's nothing to see except the flower bed. It's made of golden flowers. Looks deriberately planted."
+
+        }
+        "Progress" {
+            "You step into the next room"
+            goto ruinsEntraceFlowey
+        }
+    }
+}
+
+location ruinsEntranceFlowey {
+    "There's one door leading eastward, and one leading westward."
+
+    event {
+        conditions {
+
+            floweyFirstEncounterNotCleared
+        }
+        floweyFirstEncounterNotCleared = false
+        "There's a flower up ahead. It seems to have a... face?" ->
+        "You can't cross a room without approching it. What do you do?"
+
+        choices {
+            "Go back" goto ruinsEntrance
+
+            "Approach" {
+                trigger floweyIntro
+                finish
+            }
+        }
+    }
+    choices {
+        "Go east" goto ruinsEntranceStairs
+        "Go west" goto ruinsEntrace
+    }
+}
+
+
+event floweyIntro {
+    "The flower starts talking ?!" ->
+    "It intruduces itself as 'Flowey the flower'"
+    branch {
+
+        conditions {
+            !floweyRemembers
+        }
+        floweyRemembers = true
+        "He offers you a tutorial (you can't refuse)"
+        trigger floweyFirstFight
+        finish
+    }
+    "He scolds you for making him introduce himself. Weird. Have you two met before?" ->
+    "He gives you the tutorial anyway."
+
+    trigger floweyFirstFight
+}
+
+location ruinsEntranceStairs {
+    "There are stairs on the east side, leading up to a door. There's also a door on the west side."
+    "There's a you-sized orb in the middle of the room. It shines with golden light, and radiates a pleasant warmth."
+    choices {
+        "Go west" goto ruinsEntraceFlowey
+        "Touch the orb" {
+            "You touch the orb. The warmth spreads through you. (all injuries healed)"
+            "You're filled with Determination. (savepoint reached)"
+            lastSaveLocation = here
+        }
+        "Go east" {
+            "Your adventure finally begins." ->
+            "What a shame I didn't implement it." ->
+            "So, ...uuuh... YOU WIN!"
+            end
+        }
+    }
+}
+
+location floweysWorld {
+    "You shouldn't have come here."
+    trigger youDie
+}
+
+event floweyFirstFight {
+    "Flowey: Your soul starts out weak, but you can become stronger by gaining LV."
+    "Flowey: What does LV stand for? Why, LOVE of course!"
+    "Flowey: You would want some LOVE, don't you? Don't worry, I'll share some with you!"
+    "Fist-sized translucent white orbs materialize in the air around flowey. He winks at you cutely."
+    "Flowey: Down here LOVE is shared through little white.. 'friendlyess pellets'. Just touch them to absorb." ->
+    "The 'friendlyness pellets' are getting closer to you. They move slowly. You could dodge them with ease."
+    choices {
+        "Dodge!" {
+            "You dodge them with ease. (they disappear after a distance behind you). Flowey looks confused." ->
+            "Flowey: Hey, buddy. You missed them."
+            "Flowey: Let's try again." ->
+            "The 'frinedlyness pellets' come again, but with greater speed."
+
+            choices {
+                "Dodge!" {
+                    "Flowey's face turns into a scowl. He is decidedly unhappy."
+                    "Flowey: Is this a joke ?! Are you braindead? RUN. INTO. THE." ->
+                    "Flowey: BULLETS!! (oopsie-face)" ->
+                    "Friendliness pellets! (innocent smile)" <-
+                    "They come at you again."
+                    choices {
+                        "Dodge!" {
+                            "Floweys voice deepens. He grins maliciously."
+                            "Flowey: You know what's really going on here, don't you? You just wanted to see me suffer."
+                            trigger torielSavesYouFromFlowey
+                            finish
+                        }
+                        "Do not" {
+                            trigger floweyTrickedYou
+                            finish
+                        }
+                    }
+                }
+                "Do not." {
+                    trigger floweyTrickedYou
+                    finish
+                }
+            }
+        }
+        "Do not." {
+            trigger floweyTrickedYou
+            finish
+        }
+    }
+}
+
+event torielSavesYouFromFlowey {
+    "Flowey: DIE!!" ->
+    "The bullets encircle you. There's nowhere to run. Flowey laughs maniacally as they slowly close in..."
+    "Suddenly, the bullets disappear! Flowey looks confused. Before he can even react, a fireball hits him!"
+    "Flowey's hurt. He runs away!"
+}
+
+event floweyTrickedYou {
+    "You touch the orbs. They hurt! You've sustained damage."
+    "Flowey: You IDIOT. In this worls, it's KILL OR BE KILLED!"
+    "Flowey: Why would ANYONE pass up an opportunity like this?"
+    "Flowey: DIE!!" ->
+    "The bullets encircle you. There's nowhere to run. Flowey laughs maniacally as they slowly close in..."
+    trigger youDie
+}
+
+event youDie {
+    "You're in pain. Everything goes dark. You die."
+    "..."
+    "Or do you?"
+    goto lastSavelocation
+}
+
