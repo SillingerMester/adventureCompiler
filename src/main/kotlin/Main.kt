@@ -21,8 +21,8 @@ fun main(args: Array<String>) {
 }
 
 class VomitListener : AdventureBaseListener() {
-    var indentLength = 0
-    fun indent() {
+    private var indentLength = 0
+    private fun indent() {
         println()
         print("".padEnd(indentLength, '\t'))
     }
@@ -115,10 +115,12 @@ class VomitListener : AdventureBaseListener() {
         indent() ; print(ctx?.VAR()?.text + " " + ctx?.ID() + " " + ctx?.EQ()?.text + " ")
         super.enterVariable(ctx)
     }
+
     override fun enterAssignment(ctx: AdventureParser.AssignmentContext?) {
         indent() ; print(ctx?.ID()?.text + " " + ctx?.EQ()?.text + " ")
         super.enterAssignment(ctx)
     }
+
     override fun enterExpression(ctx: AdventureParser.ExpressionContext?) {
         print(ctx?.text + " ")
         super.enterExpression(ctx)

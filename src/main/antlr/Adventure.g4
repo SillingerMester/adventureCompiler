@@ -5,7 +5,7 @@ grammar Adventure;
 }
 
 @members {
-    // Import any necessary Kotlin classes or packages here
+    // Import any necessary classes or packages here
 }
 
 
