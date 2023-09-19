@@ -8,20 +8,22 @@ grammar Adventure;
     // Import any necessary classes or packages here
 }
 
-
+// Root of syntax tree
 adventure : (variable | introduction | location | named_event | NEWLINE)*;
 
+// Top-level contructs
 variable           : VAR ID EQ expression NEWLINE;
 introduction       : INTRODUCTION NEWLINE* CURLY_LEFT (statement | NEWLINE)* CURLY_RIGHT;
 location           : LOCATION ID NEWLINE* CURLY_LEFT (statement | unnamed_event | NEWLINE)* CURLY_RIGHT;
-
 named_event       : EVENT ID NEWLINE* CURLY_LEFT (statement | NEWLINE)* CURLY_RIGHT;
 
+// Second-level constructs
 unnamed_event     : EVENT CURLY_LEFT NEWLINE* conditions_block? (statement | NEWLINE)* choices_block? CURLY_RIGHT;
 
 statement         : print | assignment | trigger_event | branch |
                     jump_location | choices_block | FINISH_EVENT | END_STORY;
-assignment        : ID EQ expression NEWLINE;
+
+assignment        : ID EQ expression NEWLINE*;
 
 branch            : BRANCH CURLY_LEFT NEWLINE* conditions_block (statement | NEWLINE)* CURLY_RIGHT;
 conditions_block  : CONDITIONS CURLY_LEFT (expression | NEWLINE)* CURLY_RIGHT;
@@ -32,13 +34,15 @@ statement_block   : CURLY_LEFT (statement | NEWLINE)* CURLY_RIGHT;
 // Atomic statements
 jump_location     : GOTO ID;
 trigger_event     : TRIGGER ID;
-print             : STRING (CONTINUE_SIGN | REPLACE_SIGN)? NEWLINE;
+print             : STRING (CONTINUE_SIGN | REPLACE_SIGN)? NEWLINE*;
 
 // Value expressions
 expression        : unary_expression | binary_expression;
 unary_expression  : literal | (unary_operator expression) | (PAREN_LEFT expression PAREN_RIGHT);
 binary_expression : unary_expression binary_operator unary_expression;
 literal           : STRING | INT | BOOL | ID | INTRODUCTION | HERE;
+
+// Lexeme collections
 unary_operator    : PLUS | MINUS | NOT;
 binary_operator   : LT | LE | GT | GE | EQ | NE | PLUS | MINUS | DIV | MOD;
 
@@ -59,7 +63,7 @@ HERE              : 'here';
 // Whitespace
 NEWLINE           : ('\r\n' | '\r' | '\n');
 WHITESPACE        : (' ' | '\t')(' ' | '\t')* -> skip;
-COMMENT           : '//' .*? NEWLINE? -> skip;
+COMMENT           : ('//' .*? ('\r\n' | '\r' | '\n')) -> skip;
 
 // Identifiers
 ID                : [_]*[a-z][A-Za-z0-9_]* ;

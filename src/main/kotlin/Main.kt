@@ -5,7 +5,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker
 import kotlin.io.path.Path
 
 
-fun main(args: Array<String>) {
+fun main() {
     /*val gggg = AdventureLexer(CharStreams.fromPath(Path("example.txt")))
     for (i in 0..500) {
         val token = gggg.nextToken()
@@ -150,5 +150,4 @@ class VomitListener : AdventureBaseListener() {
         indentLength-- ; indent() ; print("} //branch")
         super.exitBranch(ctx)
     }
-
 }
