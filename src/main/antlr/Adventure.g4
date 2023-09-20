@@ -21,7 +21,7 @@ named_event       : EVENT ID NEWLINE* CURLY_LEFT (statement | NEWLINE)* CURLY_RI
 unnamed_event     : EVENT CURLY_LEFT NEWLINE* conditions_block? (statement | NEWLINE)* choices_block? CURLY_RIGHT;
 
 statement         : print | assignment | trigger_event | branch |
-                    jump_location | choices_block | FINISH_EVENT | END_STORY;
+                    jump_location | choices_block | finish_event | end_story;
 
 assignment        : ID EQ expression NEWLINE*;
 
@@ -34,6 +34,8 @@ statement_block   : CURLY_LEFT (statement | NEWLINE)* CURLY_RIGHT;
 // Atomic statements
 jump_location     : GOTO ID;
 trigger_event     : TRIGGER ID;
+finish_event      : FINISH_EVENT;
+end_story         : END_STORY;
 print             : STRING (CONTINUE_SIGN | REPLACE_SIGN)? NEWLINE*;
 
 // Value expressions

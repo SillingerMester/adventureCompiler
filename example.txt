@@ -14,9 +14,9 @@ introduction {
         }
         "Hey, there's a save. What do you do?"
         choices {
-            "Continue" goto lastSave
+            "Continue" goto lastSaveLocation
             "Reset" {
-                 oncePerReset = true
+                 lastSaveLocation = introduction
                  goto ruinsEntrance
             }
         }
@@ -29,7 +29,8 @@ introduction {
 }
 
 location ruinsEntrance {
-    "You woke up in this room. You can faintly see the sunlight filtering through from above. It's impossible to climb back out. There's an exit to the east, leading deeper into the mountain."
+    "You woke up in this room. You can faintly see the sunlight filtering through from above." ->
+    "It's impossible to climb back out. There's an exit to the east, leading deeper into the mountain." ->
     choices {
         "Explore the room" {
             "There's nothing to see except the flower bed. It's made of golden flowers. Looks deliberately planted."
@@ -47,7 +48,6 @@ location ruinsEntranceFlowey {
         conditions {
             floweyFirstEncounterNotCleared
         }
-        floweyFirstEncounterNotCleared = false
         "There's a flower up ahead. It seems to have a... face?" ->
         "You can't cross a room without approaching it. What do you do?"
         choices {
@@ -66,6 +66,7 @@ location ruinsEntranceFlowey {
 
 
 event floweyIntro {
+    floweyFirstEncounterNotCleared = false
     "The flower starts talking ?!" ->
     "It intruduces itself as 'Flowey the flower'"
     branch {
@@ -175,4 +176,7 @@ event youDie {
     "Or do you?"
     goto lastSaveLocation
 }
+
+
+
 
