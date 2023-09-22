@@ -9,34 +9,34 @@ grammar Adventure;
 }
 
 // Root of syntax tree
-adventure : (variable | introduction | location | named_event | NEWLINE)*;
+adventure : (variable | introduction | location | named_event)*;
 
 // Top-level contructs
-variable           : VAR ID EQ expression NEWLINE;
-introduction       : INTRODUCTION NEWLINE* CURLY_LEFT (statement | NEWLINE)* CURLY_RIGHT;
-location           : LOCATION ID NEWLINE* CURLY_LEFT (statement | unnamed_event | NEWLINE)* CURLY_RIGHT;
-named_event       : EVENT ID NEWLINE* CURLY_LEFT (statement | NEWLINE)* CURLY_RIGHT;
+variable           : VAR ID EQ expression;
+introduction       : INTRODUCTION CURLY_LEFT statement* CURLY_RIGHT;
+location           : LOCATION ID CURLY_LEFT (statement | unnamed_event)* CURLY_RIGHT;
+named_event       : EVENT ID CURLY_LEFT statement* CURLY_RIGHT;
 
 // Second-level constructs
-unnamed_event     : EVENT CURLY_LEFT NEWLINE* conditions_block? (statement | NEWLINE)* choices_block? CURLY_RIGHT;
+unnamed_event     : EVENT CURLY_LEFT conditions_block? statement* choices_block? CURLY_RIGHT;
 
 statement         : print | assignment | trigger_event | branch |
                     jump_location | choices_block | finish_event | end_story;
 
-assignment        : ID EQ expression NEWLINE*;
+assignment        : ID EQ expression;
 
-branch            : BRANCH CURLY_LEFT NEWLINE* conditions_block (statement | NEWLINE)* CURLY_RIGHT;
-conditions_block  : CONDITIONS CURLY_LEFT (expression | NEWLINE)* CURLY_RIGHT;
-choices_block     : CHOICES CURLY_LEFT (choice | NEWLINE)* CURLY_RIGHT;
+branch            : BRANCH CURLY_LEFT conditions_block statement* CURLY_RIGHT;
+conditions_block  : CONDITIONS CURLY_LEFT expression* CURLY_RIGHT;
+choices_block     : CHOICES CURLY_LEFT choice* CURLY_RIGHT;
 choice            : STRING (statement_block | statement);
-statement_block   : CURLY_LEFT (statement | NEWLINE)* CURLY_RIGHT;
+statement_block   : CURLY_LEFT statement* CURLY_RIGHT;
 
 // Atomic statements
 jump_location     : GOTO ID;
 trigger_event     : TRIGGER ID;
 finish_event      : FINISH_EVENT;
 end_story         : END_STORY;
-print             : STRING (CONTINUE_SIGN | REPLACE_SIGN)? NEWLINE*;
+print             : STRING (CONTINUE_SIGN | REPLACE_SIGN)?;
 
 // Value expressions
 expression        : unary_expression | binary_expression;
@@ -63,7 +63,7 @@ CONDITIONS        : 'conditions';
 HERE              : 'here';
 
 // Whitespace
-NEWLINE           : ('\r\n' | '\r' | '\n');
+NEWLINE           : ('\r\n' | '\r' | '\n') -> skip;
 WHITESPACE        : (' ' | '\t')(' ' | '\t')* -> skip;
 COMMENT           : ('//' .*? ('\r\n' | '\r' | '\n')) -> skip;
 
