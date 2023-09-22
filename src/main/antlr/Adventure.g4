@@ -18,10 +18,10 @@ location           : LOCATION ID CURLY_LEFT (statement | unnamed_event)* CURLY_R
 named_event       : EVENT ID CURLY_LEFT statement* CURLY_RIGHT;
 
 // Second-level constructs
-unnamed_event     : EVENT CURLY_LEFT conditions_block? statement* choices_block? CURLY_RIGHT;
+unnamed_event     : STORY? EVENT CURLY_LEFT conditions_block? statement* choices_block? CURLY_RIGHT;
 
-statement         : print | assignment | trigger_event | branch |
-                    jump_location | choices_block | finish_event | end_story;
+statement         : print | assignment | trigger_event | branch | jump_location |
+                    choices_block | finish_event | end_story | untrigger_event;
 
 assignment        : ID EQ expression;
 
@@ -37,9 +37,10 @@ trigger_event     : TRIGGER ID;
 finish_event      : FINISH_EVENT;
 end_story         : END_STORY;
 print             : STRING (CONTINUE_SIGN | REPLACE_SIGN)?;
+untrigger_event   : UNTRIGGER;
 
 // Value expressions
-expression        : unary_expression | binary_expression;
+expression        : binary_expression | unary_expression;
 unary_expression  : literal | (unary_operator expression) | (PAREN_LEFT expression PAREN_RIGHT);
 binary_expression : unary_expression binary_operator unary_expression;
 literal           : STRING | INT | BOOL | ID | INTRODUCTION | HERE;
@@ -61,6 +62,8 @@ CHOICES           : 'choices';
 BRANCH            : 'branch';
 CONDITIONS        : 'conditions';
 HERE              : 'here';
+STORY             : 'story';
+UNTRIGGER         : 'untrigger';
 
 // Whitespace
 NEWLINE           : ('\r\n' | '\r' | '\n') -> skip;

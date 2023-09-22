@@ -2,7 +2,6 @@
 // You can declare variables to be used in the story.
 var lastSaveLocation = introduction
 var floweyRemembers = false
-var floweyFirstEncounterNotCleared = true
 
 // Story begins here, but you can jump here anytime. Console should clear when executing it.
 introduction {
@@ -54,17 +53,15 @@ location ruinsEntrance {
 location ruinsEntranceFlowey {
     "There's one door leading eastward, and one leading westward."
     // Events can happen in locations. This in an inline (unnamed) event.
-    event {
-        conditions {
-            // TODO needs a better soulution than this
-            floweyFirstEncounterNotCleared
-        }
-        floweyFirstEncounterNotCleared = false
+    story event {
         "There's a flower up ahead. It seems to have a... face?" ->
         "You can't cross a room without approaching it. What do you do?"
         // Events can present choices.
         choices {
-            "Go back" goto ruinsEntrance
+            "Go back" {
+                untrigger
+                goto ruinsEntrance
+            }
             // After an event terminates, execution continues normally.
             "Approach" {
                 trigger floweyIntro
@@ -80,7 +77,6 @@ location ruinsEntranceFlowey {
 
 // You can define named events. They can be placed in locations or triggered manually.
 event floweyIntro {
-    floweyFirstEncounterNotCleared = false
     "The flower starts talking ?!" ->
     "It intruduces itself as 'Flowey the flower'"
     branch {

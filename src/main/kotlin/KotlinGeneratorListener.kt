@@ -1,5 +1,4 @@
 import com.example.AdventureBaseListener
-import com.example.AdventureListener
 import com.example.AdventureParser
 import com.example.AdventureParser.ExpressionContext
 import com.example.AdventureParser.Unnamed_eventContext
@@ -17,19 +16,22 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
 
     override fun enterAdventure(ctx: AdventureParser.AdventureContext?) {
         output.append("""
+                import java.util.Stack
+                
                 interface Location {
                     val here get() = this
                     fun execute()
                 }
 
                 class LocationChangeException(val newLocation: Location) : Exception()
+                
                 class GameOverException : Exception()
 
-                fun end() {
-                   throw GameOverException()
-                }
+                fun end(): Nothing = throw GameOverException()
                 
                 fun goto(where: Location): Nothing = throw LocationChangeException(where)
+                
+                val clearedStoryEvents = Stack<String>()
                 
                 fun displayText(text: String, keepGoing: Boolean = false, vanishing: Boolean = false) {
                     val placeholder = "(...)\r"
@@ -115,7 +117,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
                 object introduction : Location {
                     //val introduction get() = this
                     override fun execute() {
-              """.trimIndent());
+              """.trimIndent())
         indentLength += 2
         indent()
     }
@@ -134,7 +136,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
         output.append("""
                 object ${ctx?.ID()?.text} : Location {
                     override fun execute() {
-              """.trimIndent());
+              """.trimIndent())
         indentLength += 2
         indent()
     }
@@ -150,7 +152,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun enterNamed_event(ctx: AdventureParser.Named_eventContext?) {
-        output.append("fun ${ctx?.ID()?.text}Event(here: Location) {");
+        output.append("fun ${ctx?.ID()?.text}Event(here: Location) {")
         indentLength++
         indent()
     }
@@ -162,13 +164,22 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
         indent()
     }
 
-    override fun enterUnnamed_event(ctx: AdventureParser.Unnamed_eventContext?) {
-        output.append("(fun (here: Location) {");
+    override fun enterUnnamed_event(ctx: Unnamed_eventContext?) {
+        output.append("(fun (here: Location) {")
         indentLength++
         indent()
+
+        //handle story event where there are no conditions
+        if (ctx!!.EVENT() != null && ctx.conditions_block() == null) {
+            output.append("if(clearedStoryEvents.contains(\"storyEvent$storyEventCounter\")) return")
+            indent()
+            output.append("clearedStoryEvents.push(\"storyEvent$storyEventCounter\")")
+            storyEventCounter++
+            indent()
+        }
     }
 
-    override fun exitUnnamed_event(ctx: AdventureParser.Unnamed_eventContext?) {
+    override fun exitUnnamed_event(ctx: Unnamed_eventContext?) {
         //handle the indent created by conditions block
         if (ctx?.conditions_block() != null) {
             indentLength--
@@ -217,7 +228,16 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
         output.append("if (")
         indentLength++
         indent()
-        ctx!!.children.filterIsInstance<ExpressionContext>().map { it.text }.forEach {
+
+        if (ctx!!.parent is Unnamed_eventContext) {
+            val theEvent = ctx.parent as Unnamed_eventContext
+            if (theEvent.EVENT() != null) {
+                output.append("!clearedStoryEvents.contains(\"storyEvent$storyEventCounter\") &&")
+                indent()
+            }
+        }
+
+        ctx.children.filterIsInstance<ExpressionContext>().map { it.text }.forEach {
             output.append("($it) &&")
             indent()
         }
@@ -230,6 +250,15 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
         output.append(") {")
         indentLength++
         indent()
+
+        if (ctx!!.parent is Unnamed_eventContext) {
+            val theEvent = ctx.parent as Unnamed_eventContext
+            if (theEvent.EVENT() != null) {
+                output.append("clearedStoryEvents.push(\"storyEvent$storyEventCounter\")")
+                storyEventCounter++
+                indent()
+            }
+        }
     }
 
     override fun enterChoices_block(ctx: AdventureParser.Choices_blockContext?) {
@@ -238,7 +267,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
         output.append("while (true) {")
         indentLength++
         indent()
-        output.append("val choiceMap = mapOf(") ;
+        output.append("val choiceMap = mapOf(")
         indentLength++
         for (choice in choiceMap) {
             indent() ; output.append("${choice.key} to ${choice.value},")
@@ -279,7 +308,6 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun exitStatement_block(ctx: AdventureParser.Statement_blockContext?) {
-        indent()
         indentLength--
         realign()
         output.append("}//block")
@@ -291,7 +319,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun exitJump_location(ctx: AdventureParser.Jump_locationContext?) {
-        indent()
+        //do nothing
     }
 
     override fun enterTrigger_event(ctx: AdventureParser.Trigger_eventContext?) {
@@ -323,7 +351,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun exitFinish_event(ctx: AdventureParser.Finish_eventContext?) {
-        indent()
+        //do nothing
     }
 
     override fun enterEnd_story(ctx: AdventureParser.End_storyContext?) {
@@ -331,6 +359,14 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun exitEnd_story(ctx: AdventureParser.End_storyContext?) {
+        //do nothing
+    }
+
+    override fun enterUntrigger_event(ctx: AdventureParser.Untrigger_eventContext?) {
+        output.append("clearedStoryEvents.pop()")
+    }
+
+    override fun exitUntrigger_event(ctx: AdventureParser.Untrigger_eventContext?) {
         indent()
     }
 }
