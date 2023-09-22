@@ -2,23 +2,21 @@ import com.example.AdventureBaseListener
 import com.example.AdventureListener
 import com.example.AdventureParser
 import com.example.AdventureParser.ExpressionContext
-import org.antlr.v4.runtime.ParserRuleContext
-import org.antlr.v4.runtime.tree.ErrorNode
-import org.antlr.v4.runtime.tree.TerminalNode
+import com.example.AdventureParser.Unnamed_eventContext
 
-class KotlinGeneratorListener : AdventureBaseListener() {
+class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener() {
     private var indentLength = 0
     private fun indent() {
-        println()
-        print("".padEnd(indentLength, '\t'))
+        output.append("\n")
+        output.append("".padEnd(indentLength, '\t'))
     }
 
     private fun realign() {
-        print("\r" + "".padEnd(indentLength, '\t'))
+        output.append("\r" + "".padEnd(indentLength, '\t'))
     }
 
     override fun enterAdventure(ctx: AdventureParser.AdventureContext?) {
-        print("""
+        output.append("""
                 interface Location {
                     val here get() = this
                     fun execute()
@@ -32,7 +30,42 @@ class KotlinGeneratorListener : AdventureBaseListener() {
                 }
                 
                 fun goto(where: Location): Nothing = throw LocationChangeException(where)
+                
+                fun displayText(text: String, keepGoing: Boolean = false, vanishing: Boolean = false) {
+                    val placeholder = "(...)\r"
+                    val waitBetweenLines:Long = 1000
+                    if (!keepGoing && !vanishing) {
+                        //print the text, wait for [enter]
+                        print(text)
+                        readln()
+                    }
+                    if (keepGoing && !vanishing) {
+                        //print the text, and a newline
+                        println(text)
 
+                        //print a placeholder, and move cursor to the beginning
+                        print(placeholder)
+                        Thread.sleep(waitBetweenLines)
+                    }
+                    //
+                    if (!keepGoing && vanishing) {
+                        //print the text, and move cursor to the beginning
+                        print(text + "\r")
+
+                        //make text disappear
+                        Thread.sleep(waitBetweenLines)
+                        print(" ")
+
+                        //wait for [enter]
+                        readln()
+                    }
+                    if (keepGoing && vanishing) {
+                        //print the text, and move cursor to the beginning
+                        print(text + "\r")
+                        Thread.sleep(waitBetweenLines)
+                    }
+                }
+                
                 fun executeStory() {
                     var here : Location = introduction
                     while (true) {
@@ -57,19 +90,19 @@ class KotlinGeneratorListener : AdventureBaseListener() {
                     }
                 }
         """.trimIndent())
-        println()
+        output.append("\n")
         indent()
     }
 
     override fun exitAdventure(ctx: AdventureParser.AdventureContext?) {
-        println("// adventure end")
+        output.append("// adventure end\n")
         indent()
     }
 
     override fun enterVariable(ctx: AdventureParser.VariableContext?) {
         val initializer = ctx?.expression()?.text +
                 if (ctx?.expression()?.unary_expression()?.literal()?.INTRODUCTION() != null) ".here" else ""
-        print("var " + ctx?.ID()?.text + " = " + initializer)
+        output.append("var " + ctx?.ID()?.text + " = " + initializer)
         indent()
     }
 
@@ -78,9 +111,9 @@ class KotlinGeneratorListener : AdventureBaseListener() {
     }
 
     override fun enterIntroduction(ctx: AdventureParser.IntroductionContext?) {
-        print("""
+        output.append("""
                 object introduction : Location {
-                    val introduction get() = this
+                    //val introduction get() = this
                     override fun execute() {
               """.trimIndent());
         indentLength += 2
@@ -90,7 +123,7 @@ class KotlinGeneratorListener : AdventureBaseListener() {
     override fun exitIntroduction(ctx: AdventureParser.IntroductionContext?) {
         indentLength -= 2
         indent()
-        print("""
+        output.append("""
                   }
               }
               """.trimIndent())
@@ -98,7 +131,7 @@ class KotlinGeneratorListener : AdventureBaseListener() {
     }
 
     override fun enterLocation(ctx: AdventureParser.LocationContext?) {
-        print("""
+        output.append("""
                 object ${ctx?.ID()?.text} : Location {
                     override fun execute() {
               """.trimIndent());
@@ -109,7 +142,7 @@ class KotlinGeneratorListener : AdventureBaseListener() {
     override fun exitLocation(ctx: AdventureParser.LocationContext?) {
         indentLength -= 2
         indent()
-        print("""
+        output.append("""
                   }
               }
               """.trimIndent())
@@ -117,7 +150,7 @@ class KotlinGeneratorListener : AdventureBaseListener() {
     }
 
     override fun enterNamed_event(ctx: AdventureParser.Named_eventContext?) {
-        print("fun ${ctx?.ID()?.text}Event(here: Location) {");
+        output.append("fun ${ctx?.ID()?.text}Event(here: Location) {");
         indentLength++
         indent()
     }
@@ -125,12 +158,12 @@ class KotlinGeneratorListener : AdventureBaseListener() {
     override fun exitNamed_event(ctx: AdventureParser.Named_eventContext?) {
         indentLength--
         indent()
-        print("}")
+        output.append("}")
         indent()
     }
 
     override fun enterUnnamed_event(ctx: AdventureParser.Unnamed_eventContext?) {
-        print("(fun (here: Location) {");
+        output.append("(fun (here: Location) {");
         indentLength++
         indent()
     }
@@ -140,11 +173,11 @@ class KotlinGeneratorListener : AdventureBaseListener() {
         if (ctx?.conditions_block() != null) {
             indentLength--
             indent()
-            print("}")
+            output.append("}")
         }
         indentLength--
         indent()
-        print("}) (here)")
+        output.append("}) (here)")
         indent()
     }
 
@@ -157,7 +190,7 @@ class KotlinGeneratorListener : AdventureBaseListener() {
     }
 
     override fun enterAssignment(ctx: AdventureParser.AssignmentContext?) {
-        print(ctx?.ID()?.text + " = " + ctx?.expression()?.text)
+        output.append(ctx?.ID()?.text + " = " + ctx?.expression()?.text)
         indent()
     }
 
@@ -174,25 +207,27 @@ class KotlinGeneratorListener : AdventureBaseListener() {
         if (ctx?.conditions_block() != null) {
             indentLength--
             indent()
-            print("}//if")
+            output.append("}//if")
         }
         indent()
     }
 
+    var storyEventCounter = 0
     override fun enterConditions_block(ctx: AdventureParser.Conditions_blockContext?) {
-        print("if (")
+        output.append("if (")
         indentLength++
         indent()
         ctx!!.children.filterIsInstance<ExpressionContext>().map { it.text }.forEach {
-            print("($it) &&")
+            output.append("($it) &&")
+            indent()
         }
-        print("true")
+        output.append("true")
         indentLength--
         indent()
     }
 
     override fun exitConditions_block(ctx: AdventureParser.Conditions_blockContext?) {
-        print(") {")
+        output.append(") {")
         indentLength++
         indent()
     }
@@ -200,37 +235,37 @@ class KotlinGeneratorListener : AdventureBaseListener() {
     override fun enterChoices_block(ctx: AdventureParser.Choices_blockContext?) {
         val allTheChoices = ctx?.children?.filterIsInstance<AdventureParser.ChoiceContext>()?.map { it.STRING().text }
         val choiceMap = (0..<allTheChoices!!.size).associate { (it + 1) to allTheChoices[it] }
-        print("while (true) {")
+        output.append("while (true) {")
         indentLength++
         indent()
-        print("val choiceMap = mapOf(") ;
+        output.append("val choiceMap = mapOf(") ;
         indentLength++
         for (choice in choiceMap) {
-            indent() ; print("${choice.key} to ${choice.value},")
+            indent() ; output.append("${choice.key} to ${choice.value},")
         }
-        indentLength-- ; indent() ; print(")") //map
-        indent() ; print("println(\">>>CHOICES\")")
-        indent() ; print("choiceMap.entries.forEach {") ; indentLength++
-        indent() ; print("println(\"    \" + it.key + \") \" + it.value)") ; indentLength--
-        indent() ; print("}")
-        indent() ; print("print(\">>>Your choice: \")")
-        indent() ; print("val choiceNum = try { readln().toInt() } catch (_:NumberFormatException) { -1 }")
-        indent() ; print("when (choiceMap[choiceNum]) {") ; indentLength++
+        indentLength-- ; indent() ; output.append(")") //map
+        indent() ; output.append("println(\">>>CHOICES\")")
+        indent() ; output.append("choiceMap.entries.forEach {") ; indentLength++
+        indent() ; output.append("println(\"    \" + it.key + \") \" + it.value)") ; indentLength--
+        indent() ; output.append("}")
+        indent() ; output.append("print(\">>>Your choice: \")")
+        indent() ; output.append("val choiceNum = try { readln().toInt() } catch (_:NumberFormatException) { -1 }")
+        indent() ; output.append("when (choiceMap[choiceNum]) {") ; indentLength++
     }
 
     override fun exitChoices_block(ctx: AdventureParser.Choices_blockContext?) {
-        indent() ; print("else -> {") ; indentLength++
-        indent() ; print("println(\">>>No such choice exists\")"); indentLength--
-        indent() ; print("}//else") //else
+        indent() ; output.append("else -> {") ; indentLength++
+        indent() ; output.append("println(\">>>No such choice exists\")"); indentLength--
+        indent() ; output.append("}//else") //else
         indentLength--
-        indent() ; print("}//when") //when
+        indent() ; output.append("}//when") //when
         indentLength--
-        indent() ; print("}//while") //while
+        indent() ; output.append("}//while") //while
     }
 
     override fun enterChoice(ctx: AdventureParser.ChoiceContext?) {
         indent()
-        print("${ctx?.STRING()} -> ")
+        output.append("${ctx?.STRING()} -> ")
     }
 
     override fun exitChoice(ctx: AdventureParser.ChoiceContext?) {
@@ -238,7 +273,7 @@ class KotlinGeneratorListener : AdventureBaseListener() {
     }
 
     override fun enterStatement_block(ctx: AdventureParser.Statement_blockContext?) {
-        print(" {")
+        output.append(" {")
         indentLength++
         indent()
     }
@@ -247,12 +282,12 @@ class KotlinGeneratorListener : AdventureBaseListener() {
         indent()
         indentLength--
         realign()
-        print("}//block")
+        output.append("}//block")
         indent()
     }
 
     override fun enterJump_location(ctx: AdventureParser.Jump_locationContext?) {
-        print("goto(" + ctx?.ID()?.text + ")")
+        output.append("goto(" + ctx?.ID()?.text + ")")
     }
 
     override fun exitJump_location(ctx: AdventureParser.Jump_locationContext?) {
@@ -260,7 +295,7 @@ class KotlinGeneratorListener : AdventureBaseListener() {
     }
 
     override fun enterTrigger_event(ctx: AdventureParser.Trigger_eventContext?) {
-        print(ctx?.ID()?.text + "Event(here)")
+        output.append(ctx?.ID()?.text + "Event(here)")
     }
 
     override fun exitTrigger_event(ctx: AdventureParser.Trigger_eventContext?) {
@@ -269,15 +304,13 @@ class KotlinGeneratorListener : AdventureBaseListener() {
 
     override fun enterPrint(ctx: AdventureParser.PrintContext?) {
         if (ctx!!.REPLACE_SIGN() == null) {
-            print("print(" + ctx.STRING()?.text + ")")
+            if (ctx.CONTINUE_SIGN() == null) {
+                output.append("displayText(" + ctx.STRING().text + ")")
+            } else {
+                output.append("displayText(" + ctx.STRING().text + ", keepGoing=true)")
+            }
         } else {
-            print("print(\"\\r\" + " + ctx.STRING()?.text + ")")
-        }
-
-        if (ctx.CONTINUE_SIGN() == null) {
-            print(" ; readln()")
-        } else {
-            print(" ; println()")
+            output.append("displayText(" + ctx.STRING().text + ", vanishing=true, keepGoing=true)")
         }
     }
 
@@ -286,7 +319,7 @@ class KotlinGeneratorListener : AdventureBaseListener() {
     }
 
     override fun enterFinish_event(ctx: AdventureParser.Finish_eventContext?) {
-        print("return")
+        output.append("return")
     }
 
     override fun exitFinish_event(ctx: AdventureParser.Finish_eventContext?) {
@@ -294,7 +327,7 @@ class KotlinGeneratorListener : AdventureBaseListener() {
     }
 
     override fun enterEnd_story(ctx: AdventureParser.End_storyContext?) {
-        print("end()")
+        output.append("end()")
     }
 
     override fun exitEnd_story(ctx: AdventureParser.End_storyContext?) {
