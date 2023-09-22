@@ -1,39 +1,48 @@
 
+// You can declare variables to be used in the story.
 var lastSaveLocation = introduction
 var floweyRemembers = false
 var floweyFirstEncounterNotCleared = true
 
+// Story begins here, but you can jump here anytime. Console should clear when executing it.
 introduction {
+    // String literals are printed out. The player needs to press enter after each one.
     "You climbed a mountain that is famous for making people disappear. In hindsight, that might have been a bad idea."
     "You stumbled and fell into a hole. It was quite a fall..."
     "You wake up between flowers and moss. Somehow you're alright."
+    // You can execute stuff conditionally by branching. They are processed in the orden they're written, but it is recommended to use mutually exlusive conditions.
     branch {
+        // One block of conditions per branch. The logical AND is taken.
         conditions {
             lastSaveLocation != introduction
             lastSaveLocation != floweysWorld
         }
+        // The branch is executed sequentially.
         "Hey, there's a save. What do you do?"
+        // Choices can be presented anywhere. The player can chose exactly one.
         choices {
-            "Continue" goto lastSaveLocation
+            "Continue" goto lastSaveLocation // Choice name and action. Use {block} for multiple actions.
             "Reset" {
-                 lastSaveLocation = introduction
-                 goto ruinsEntrance
+                 lastSaveLocation = introduction // Assign variables based on player input.
+                 goto ruinsEntrance // Change location (stops executing current location and begins the new one)
             }
         }
     }
-
-    "This DEFINITELY isn't an UNDERTALE ripoff. And no, you can't name yourself." ->
+    // Execution continues if branch didn't jump out of parent block.
+    "This DEFINITELY isn't an UNDERTALE ripoff. And no, you can't name yourself." -> // If you place -> after a string, the player needn't press enter to continue.
     choices {
-        "Begin" goto ruinsEntrance
+        "Begin" goto ruinsEntrance // If you had zero choices, the game would lock up. So don't do that.
     }
 }
 
 location ruinsEntrance {
     "You woke up in this room. You can faintly see the sunlight filtering through from above." ->
     "It's impossible to climb back out. There's an exit to the east, leading deeper into the mountain." ->
+    // The parent block cannot have anything after the choices block. The choices block keeps executing until it terminates itself.
     choices {
         "Explore the room" {
             "There's nothing to see except the flower bed. It's made of golden flowers. Looks deliberately planted."
+            // This didn't terminate the block, so the choices are presented again.
         }
         "Progress" {
             "You step into the next room"
@@ -44,19 +53,24 @@ location ruinsEntrance {
 
 location ruinsEntranceFlowey {
     "There's one door leading eastward, and one leading westward."
+    // Events can happen in locations. This in an inline (unnamed) event.
     event {
         conditions {
+            // TODO needs a better soulution than this
             floweyFirstEncounterNotCleared
         }
+        floweyFirstEncounterNotCleared = false
         "There's a flower up ahead. It seems to have a... face?" ->
         "You can't cross a room without approaching it. What do you do?"
+        // Events can present choices.
         choices {
             "Go back" goto ruinsEntrance
+            // After an event terminates, execution continues normally.
             "Approach" {
                 trigger floweyIntro
-                finish
+                finish  // Terminate innermost event. (would get stuck otherwise)
             }
-        }
+        } // If you get to this line, the choice will execute again.
     }
     choices {
         "Go east" goto ruinsEntranceStairs
@@ -64,23 +78,24 @@ location ruinsEntranceFlowey {
     }
 }
 
-
+// You can define named events. They can be placed in locations or triggered manually.
 event floweyIntro {
     floweyFirstEncounterNotCleared = false
     "The flower starts talking ?!" ->
     "It intruduces itself as 'Flowey the flower'"
     branch {
+        // The conditions block (if exists) is always the first block.
         conditions {
             !floweyRemembers
         }
         floweyRemembers = true
         "He offers you a tutorial (you can't refuse)"
         trigger floweyFirstFight
-        finish
+        finish  // Terminate innermost event.
     }
     "He scolds you for making him introduce himself. Weird. Have you two met before?" ->
     "He gives you the tutorial anyway."
-
+    // Events can trigger other events ad-infinitum.
     trigger floweyFirstFight
 }
 
@@ -98,7 +113,7 @@ location ruinsEntranceStairs {
             "Your adventure finally begins." ->
             "What a shame I didn't implement it." ->
             "So, ...uuuh... YOU WIN!"
-            end
+            end //Terminate the story
         }
     }
 }
@@ -120,38 +135,39 @@ event floweyFirstFight {
             "You dodge them with ease. (they disappear after a distance behind you). Flowey looks confused." ->
             "Flowey: Hey, buddy. You missed them."
             "Flowey: Let's try again." ->
-            "The 'frinedlyness pellets' come again, but with greater speed."
+            "The 'friendliness pellets' come again, but with greater speed."
+            // Choices can be presented while handling choices.
             choices {
                 "Dodge!" {
                     "Flowey's face turns into a scowl. He is decidedly unhappy."
                     "Flowey: Is this a joke ?! Are you brain-dead? RUN. INTO. THE." ->
-                    "Flowey: BULLETS!! (oopsie-face)" ->
-                    "Friendliness pellets! (innocent smile)" <-
+                    "Flowey: BULLETS!! (oopsie-face)" <- // The <- makes this a vanishing line.
+                    "Friendliness pellets! (innocent smile)" ->
                     "They come at you again."
                     choices {
                         "Dodge!" {
                             "Floweys voice deepens. He grins maliciously."
                             "Flowey: You know what's really going on here, don't you? You just wanted to see me suffer."
                             trigger torielSavesYouFromFlowey
-                            finish
+                            finish // Jump out of choices by terminating the event.
                         }
                         "Do not" {
                             trigger floweyTrickedYou
-                            finish
+                            finish // Jump out of choices by terminating the event.
                         }
-                    }
+                    } // If you get to this line, the choice will execute again.
                 }
                 "Do not." {
                     trigger floweyTrickedYou
-                    finish
+                    finish // Jump out of choices by terminating the event.
                 }
-            }
+            } // If you get to this line, the choice will execute again.
         }
         "Do not." {
             trigger floweyTrickedYou
-            finish
+            finish // Jump out of choices by terminating the event.
         }
-    }
+    } // If you get to this line, the choice will execute again.
 }
 
 event torielSavesYouFromFlowey {
@@ -176,7 +192,4 @@ event youDie {
     "Or do you?"
     goto lastSaveLocation
 }
-
-
-
 
