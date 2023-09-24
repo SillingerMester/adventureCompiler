@@ -35,8 +35,6 @@ fun main() {
     ParseTreeWalker.DEFAULT.walk(checker, tree)
 
     if (!checker.error && !checker.warning) {
-        println()
-        println()
         println("Everything is OK. Generating file...")
 
         val generator = KotlinGeneratorListener(StringBuilder())

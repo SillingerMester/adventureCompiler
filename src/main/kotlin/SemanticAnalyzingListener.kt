@@ -1,9 +1,12 @@
 import com.example.AdventureBaseListener
 import com.example.AdventureParser
 import com.example.AdventureParser.AdventureContext
+import com.example.AdventureParser.BoolExpressionBContext
 import com.example.AdventureParser.BoolExpressionUContext
 import com.example.AdventureParser.ExpressionContext
+import com.example.AdventureParser.IntComparisonContext
 import com.example.AdventureParser.IntExpressionUContext
+import com.example.AdventureParser.OtherExpressionUContext
 import org.antlr.v4.runtime.RuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
@@ -127,6 +130,10 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
         }
         if (ctx.parent is BoolExpressionUContext && type != ExpressionType.BOOL) {
             printError(ctx.ID().symbol, "bool expression required")
+        }
+
+        if (ctx.parent is IntComparisonContext && type != ExpressionType.INT) {
+            printError(ctx.ID().symbol, "int expression required")
         }
     }
 

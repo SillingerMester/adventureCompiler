@@ -134,7 +134,7 @@ class VomitListener(val output: StringBuilder) : AdventureBaseListener() {
     }
 
     override fun enterVariable(ctx: AdventureParser.VariableContext?) {
-        output.append(ctx?.VAR()?.text + " " + ctx?.ID() + " " + ctx?.EQ()?.text + " " + ctx?.expression()?.text)
+        output.append(ctx?.VAR()?.text + " " + ctx?.ID() + " " + ctx?.ASSIGN()?.text + " " + ctx?.expression()?.text)
     }
 
     override fun exitVariable(ctx: AdventureParser.VariableContext?) {
@@ -142,7 +142,7 @@ class VomitListener(val output: StringBuilder) : AdventureBaseListener() {
     }
 
     override fun enterAssignment(ctx: AdventureParser.AssignmentContext?) {
-        output.append(ctx?.ID()?.text + " " + ctx?.EQ()?.text + " " + ctx?.expression()?.text)
+        output.append(ctx?.ID()?.text + " " + ctx?.ASSIGN()?.text + " " + ctx?.expression()?.text)
     }
 
     override fun exitAssignment(ctx: AdventureParser.AssignmentContext?) {

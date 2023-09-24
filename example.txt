@@ -18,7 +18,7 @@ introduction {
         }
         // The branch is executed sequentially.
         "Hey, there's a save. What do you do?"
-        // Choices can be presented anywhere. The player can chose exactly one.
+        // Choices can be presented anywhere. The player can choose exactly one.
         choices {
             "Continue" goto lastSaveLocation // Choice name and action. Use {block} for multiple actions.
             "Reset" {
