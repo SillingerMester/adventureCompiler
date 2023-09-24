@@ -54,7 +54,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
 
                         //print a placeholder, and move cursor to the beginning
                         print(placeholder)
-                        Thread.sleep(waitBetweenLines)
+                        //Thread.sleep(waitBetweenLines)
                     }
                     //
                     if (!keepGoing && vanishing) {
@@ -178,9 +178,9 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
 
         //handle story event where there are no conditions
         if (ctx!!.EVENT() != null && ctx.conditions_block() == null) {
-            output.append("if(clearedStoryEvents.contains(\"storyEvent$storyEventCounter\")) return")
+            output.append("if(clearedStoryEvents.contains(\"@storyEvent$storyEventCounter\")) return")
             indent()
-            output.append("clearedStoryEvents.push(\"storyEvent$storyEventCounter\")")
+            output.append("clearedStoryEvents.push(\"@storyEvent$storyEventCounter\")")
             storyEventCounter++
             indent()
         }
@@ -239,7 +239,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
         if (ctx!!.parent is Unnamed_eventContext) {
             val theEvent = ctx.parent as Unnamed_eventContext
             if (theEvent.EVENT() != null) {
-                output.append("!clearedStoryEvents.contains(\"storyEvent$storyEventCounter\") &&")
+                output.append("!clearedStoryEvents.contains(\"@storyEvent$storyEventCounter\") &&")
                 indent()
             }
         }
@@ -261,7 +261,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
         if (ctx!!.parent is Unnamed_eventContext) {
             val theEvent = ctx.parent as Unnamed_eventContext
             if (theEvent.EVENT() != null) {
-                output.append("clearedStoryEvents.push(\"storyEvent$storyEventCounter\")")
+                output.append("clearedStoryEvents.push(\"@storyEvent$storyEventCounter\")")
                 storyEventCounter++
                 indent()
             }
