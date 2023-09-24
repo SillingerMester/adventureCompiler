@@ -9,45 +9,45 @@ grammar Adventure;
 }
 
 // Root of syntax tree
-adventure : (variable | introduction | location | named_event)*;
+adventure : (variable | introduction | location | namedEvent)*;
 
 // Top-level contructs
 variable           : VAR ID EQ expression;
 introduction       : INTRODUCTION CURLY_LEFT statement* CURLY_RIGHT;
-location           : LOCATION ID CURLY_LEFT (statement | unnamed_event)* CURLY_RIGHT;
-named_event       : EVENT ID CURLY_LEFT statement* CURLY_RIGHT;
+location           : LOCATION ID CURLY_LEFT (statement | unnamedEvent)* CURLY_RIGHT;
+namedEvent         : EVENT ID CURLY_LEFT statement* CURLY_RIGHT;
 
 // Second-level constructs
-unnamed_event     : STORY? EVENT CURLY_LEFT conditions_block? statement* choices_block? CURLY_RIGHT;
+unnamedEvent      : STORY? EVENT CURLY_LEFT conditionsBlock? statement* choicesBlock? CURLY_RIGHT;
 
-statement         : print | assignment | trigger_event | branch | jump_location |
-                    choices_block | finish_event | end_story | untrigger_event;
+statement         : print | assignment | triggerEvent | branch | jumpLocation |
+                    choicesBlock | finishEvent | endStory | untriggerEvent;
 
 assignment        : ID EQ expression;
 
-branch            : BRANCH CURLY_LEFT conditions_block statement* CURLY_RIGHT;
-conditions_block  : CONDITIONS CURLY_LEFT expression* CURLY_RIGHT;
-choices_block     : CHOICES CURLY_LEFT choice* CURLY_RIGHT;
-choice            : STRING (statement_block | statement);
-statement_block   : CURLY_LEFT statement* CURLY_RIGHT;
+branch            : BRANCH CURLY_LEFT conditionsBlock statement* CURLY_RIGHT;
+conditionsBlock   : CONDITIONS CURLY_LEFT expression* CURLY_RIGHT;
+choicesBlock     : CHOICES CURLY_LEFT choice* CURLY_RIGHT;
+choice            : STRING (statementBlock | statement);
+statementBlock    : CURLY_LEFT statement* CURLY_RIGHT;
 
 // Atomic statements
-jump_location     : GOTO ID;
-trigger_event     : TRIGGER ID;
-finish_event      : FINISH_EVENT;
-end_story         : END_STORY;
+jumpLocation      : GOTO ID;
+triggerEvent      : TRIGGER ID;
+finishEvent       : FINISH_EVENT;
+endStory          : END_STORY;
 print             : STRING (CONTINUE_SIGN | REPLACE_SIGN)?;
-untrigger_event   : UNTRIGGER;
+untriggerEvent    : UNTRIGGER;
 
 // Value expressions
-expression        : binary_expression | unary_expression;
-unary_expression  : literal | (unary_operator expression) | (PAREN_LEFT expression PAREN_RIGHT);
-binary_expression : unary_expression binary_operator unary_expression;
+expression        : binaryExpression | unaryExpression;
+unaryExpression   : literal | (unaryOperator expression) | (PAREN_LEFT expression PAREN_RIGHT);
+binaryExpression  : unaryExpression binaryOperator unaryExpression;
 literal           : STRING | INT | BOOL | ID | INTRODUCTION | HERE;
 
 // Lexeme collections
-unary_operator    : PLUS | MINUS | NOT;
-binary_operator   : LT | LE | GT | GE | EQ | NE | PLUS | MINUS | DIV | MOD;
+unaryOperator     : PLUS | MINUS | NOT;
+binaryOperator    : LT | LE | GT | GE | EQ | NE | PLUS | MINUS | DIV | MOD;
 
 // Whitespace
 NEWLINE           : ('\r\n' | '\r' | '\n') -> skip;

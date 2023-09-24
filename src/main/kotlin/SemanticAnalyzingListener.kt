@@ -46,7 +46,7 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
     private fun errorNotDefined(offender: Token) {
         printError(offender,"Symbol ${offender.text} is not defined in this scope!")
     }
-    override fun enterAdventure(ctx: AdventureParser.AdventureContext?) {
+    override fun enterAdventure(ctx: AdventureContext?) {
         ctx?.children?.filterIsInstance<AdventureParser.LocationContext>()?.forEach {
             if (symbolTable.peek().contains(it.ID().text)) {
                 errorAlreadyDefined(it.ID().symbol)
@@ -54,7 +54,7 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
                 symbolTable.peek().add(it.ID().text)
             }
         }
-        ctx?.children?.filterIsInstance<AdventureParser.Named_eventContext>()?.forEach {
+        ctx?.children?.filterIsInstance<AdventureParser.NamedEventContext>()?.forEach {
             if (symbolTable.peek().contains(it.text)) {
                 ctx.start.line
                 errorAlreadyDefined(it.ID().symbol)
@@ -76,8 +76,8 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
         if (node?.symbol?.type == AdventureLexer.ID) {
             if (
                 node.parent is AdventureParser.LiteralContext ||
-                node.parent is AdventureParser.Trigger_eventContext ||
-                node.parent is AdventureParser.Jump_locationContext
+                node.parent is AdventureParser.TriggerEventContext ||
+                node.parent is AdventureParser.JumpLocationContext
             ) {
                 val name = node.text
                 if (!isSymbolDefined(name)) {
@@ -90,15 +90,15 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
 
     private fun findEnclosingEvent(ctx: RuleContext): RuleContext? {
         var parentCtx: RuleContext = ctx
-        while (parentCtx !is AdventureParser.AdventureContext) {
-            if (parentCtx is AdventureParser.Unnamed_eventContext || parentCtx is AdventureParser.Named_eventContext) {
+        while (parentCtx !is AdventureContext) {
+            if (parentCtx is AdventureParser.UnnamedEventContext || parentCtx is AdventureParser.NamedEventContext) {
                 return parentCtx
             }
             parentCtx = parentCtx.parent
         }
         return null
     }
-    override fun enterFinish_event(ctx: AdventureParser.Finish_eventContext?) {
+    override fun enterFinishEvent(ctx: AdventureParser.FinishEventContext?) {
         val theEvent = findEnclosingEvent(ctx!!)
         if (theEvent == null) {
             val token = ctx.FINISH_EVENT().symbol
@@ -106,9 +106,9 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
         }
     }
 
-    override fun enterUntrigger_event(ctx: AdventureParser.Untrigger_eventContext?) {
+    override fun enterUntriggerEvent(ctx: AdventureParser.UntriggerEventContext?) {
         val theEvent = findEnclosingEvent(ctx!!)
-        if (theEvent == null || theEvent !is AdventureParser.Unnamed_eventContext || theEvent.STORY() == null) {
+        if (theEvent == null || theEvent !is AdventureParser.UnnamedEventContext || theEvent.STORY() == null) {
             printWarning(ctx.start, "${ctx.UNTRIGGER()} is not inside a story event. Are you sure?")
         }
     }
@@ -121,27 +121,27 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
         symbolTable.pop()
     }
 
-    override fun enterNamed_event(ctx: AdventureParser.Named_eventContext?) {
+    override fun enterNamedEvent(ctx: AdventureParser.NamedEventContext?) {
         symbolTable.push(mutableSetOf())
     }
 
-    override fun exitNamed_event(ctx: AdventureParser.Named_eventContext?) {
+    override fun exitNamedEvent(ctx: AdventureParser.NamedEventContext?) {
         symbolTable.pop()
     }
 
-    override fun enterUnnamed_event(ctx: AdventureParser.Unnamed_eventContext?) {
+    override fun enterUnnamedEvent(ctx: AdventureParser.UnnamedEventContext?) {
         symbolTable.push(mutableSetOf())
     }
 
-    override fun exitUnnamed_event(ctx: AdventureParser.Unnamed_eventContext?) {
+    override fun exitUnnamedEvent(ctx: AdventureParser.UnnamedEventContext?) {
         symbolTable.pop()
     }
 
-    override fun enterStatement_block(ctx: AdventureParser.Statement_blockContext?) {
+    override fun enterStatementBlock(ctx: AdventureParser.StatementBlockContext?) {
         symbolTable.push(mutableSetOf())
     }
 
-    override fun exitStatement_block(ctx: AdventureParser.Statement_blockContext?) {
+    override fun exitStatementBlock(ctx: AdventureParser.StatementBlockContext?) {
         symbolTable.pop()
     }
 
