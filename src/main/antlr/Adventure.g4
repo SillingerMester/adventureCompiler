@@ -49,6 +49,11 @@ literal           : STRING | INT | BOOL | ID | INTRODUCTION | HERE;
 unary_operator    : PLUS | MINUS | NOT;
 binary_operator   : LT | LE | GT | GE | EQ | NE | PLUS | MINUS | DIV | MOD;
 
+// Whitespace
+NEWLINE           : ('\r\n' | '\r' | '\n') -> skip;
+WHITESPACE        : (' ' | '\t')(' ' | '\t')* -> skip;
+COMMENT           : ('//' .*? ('\r\n' | '\r' | '\n')) -> skip;
+
 // Keywords
 VAR               : 'var';
 INTRODUCTION      : 'introduction';
@@ -65,18 +70,13 @@ HERE              : 'here';
 STORY             : 'story';
 UNTRIGGER         : 'untrigger';
 
-// Whitespace
-NEWLINE           : ('\r\n' | '\r' | '\n') -> skip;
-WHITESPACE        : (' ' | '\t')(' ' | '\t')* -> skip;
-COMMENT           : ('//' .*? ('\r\n' | '\r' | '\n')) -> skip;
-
-// Identifiers
-ID                : [_]*[a-z][A-Za-z0-9_]* ;
-
 // Literals
 STRING            : '"' .*? '"';
 BOOL              : 'true' | 'false';
 INT               : [0-9][0-9]*;
+
+// Identifiers
+ID                : [_]*[a-z][A-Za-z0-9_]* ;
 
 // Operators
 CONTINUE_SIGN     : '->';
