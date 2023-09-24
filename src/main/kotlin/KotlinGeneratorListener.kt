@@ -109,8 +109,8 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun enterVariable(ctx: AdventureParser.VariableContext?) {
-        val initializer = ctx?.expression()?.text +
-                if (ctx?.expression()?.unaryExpression()?.literal()?.INTRODUCTION() != null) ".here" else ""
+        val initializer = ctx?.expression()?.text
+                //if (ctx?.expression()?.otherExpression()?. unaryExpression()?.literal()?.INTRODUCTION() != null) ".here" else ""
         output.append("var " + ctx?.ID()?.text + " = " + initializer)
         indent()
     }

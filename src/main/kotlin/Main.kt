@@ -30,7 +30,7 @@ fun main() {
     val list2 = VomitListener(StringBuilder())
     ParseTreeWalker.DEFAULT.walk(list2, tree2)
 
-    print("Doing semantic analysis...")
+    println("Doing semantic analysis...")
     val checker = SemanticAnalyzingListener()
     ParseTreeWalker.DEFAULT.walk(checker, tree)
 

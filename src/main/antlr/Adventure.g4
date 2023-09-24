@@ -13,23 +13,21 @@ adventure : (variable | introduction | location | namedEvent)*;
 
 // Top-level contructs
 variable           : VAR ID EQ expression;
-introduction       : INTRODUCTION CURLY_LEFT statement* CURLY_RIGHT;
-location           : LOCATION ID CURLY_LEFT (statement | unnamedEvent)* CURLY_RIGHT;
-namedEvent         : EVENT ID CURLY_LEFT statement* CURLY_RIGHT;
+introduction       : INTRODUCTION CURLY_LEFT (statement | unnamedEvent)* choicesBlock? CURLY_RIGHT;
+location           : LOCATION ID CURLY_LEFT (statement | unnamedEvent)* choicesBlock? CURLY_RIGHT;
+namedEvent         : EVENT ID CURLY_LEFT statement* choicesBlock? CURLY_RIGHT;
 
 // Second-level constructs
 unnamedEvent      : STORY? EVENT CURLY_LEFT conditionsBlock? statement* choicesBlock? CURLY_RIGHT;
 
 statement         : print | assignment | triggerEvent | branch | jumpLocation |
-                    choicesBlock | finishEvent | endStory | untriggerEvent;
+                    finishEvent | endStory | untriggerEvent;
 
-assignment        : ID EQ expression;
-
-branch            : BRANCH CURLY_LEFT conditionsBlock statement* CURLY_RIGHT;
-conditionsBlock   : CONDITIONS CURLY_LEFT expression* CURLY_RIGHT;
+branch            : BRANCH CURLY_LEFT conditionsBlock statement* choicesBlock? CURLY_RIGHT;
+conditionsBlock   : CONDITIONS CURLY_LEFT boolExpression* CURLY_RIGHT;
 choicesBlock     : CHOICES CURLY_LEFT choice* CURLY_RIGHT;
 choice            : STRING (statementBlock | statement);
-statementBlock    : CURLY_LEFT statement* CURLY_RIGHT;
+statementBlock    : CURLY_LEFT statement* choicesBlock? CURLY_RIGHT;
 
 // Atomic statements
 jumpLocation      : GOTO ID;
@@ -38,16 +36,26 @@ finishEvent       : FINISH_EVENT;
 endStory          : END_STORY;
 print             : STRING (CONTINUE_SIGN | REPLACE_SIGN)?;
 untriggerEvent    : UNTRIGGER;
+assignment        : ID EQ expression;
 
 // Value expressions
-expression        : binaryExpression | unaryExpression;
-unaryExpression   : literal | (unaryOperator expression) | (PAREN_LEFT expression PAREN_RIGHT);
-binaryExpression  : unaryExpression binaryOperator unaryExpression;
-literal           : STRING | INT | BOOL | ID | INTRODUCTION | HERE;
+expression        : boolExpression | intExpression | otherExpression;
 
-// Lexeme collections
-unaryOperator     : PLUS | MINUS | NOT;
-binaryOperator    : LT | LE | GT | GE | EQ | NE | PLUS | MINUS | DIV | MOD;
+intExpression     : intExpressionU | intExpressionB;
+intExpressionU    : INT | implicitTypedExpr | ((PLUS | MINUS) intExpression) | (PAREN_LEFT intExpression PAREN_RIGHT);
+intExpressionB    : (intExpressionU (PLUS | MINUS | MULT | DIV | MOD) intExpressionU);
+
+boolExpression    : boolExpressionU | boolExpressionB;
+boolExpressionU   : BOOL | implicitTypedExpr | (NOT boolExpression) |
+                    intExpression (LT | LE | EQ | GE | GT | NE) intExpression |
+                    (otherExpression (EQ | NE) otherExpression);
+
+boolExpressionB   : boolExpressionU OR boolExpressionU;
+
+otherExpression   : otherExpressionU;
+otherExpressionU  : STRING | implicitTypedExpr | INTRODUCTION | HERE;
+
+implicitTypedExpr : ID;
 
 // Whitespace
 NEWLINE           : ('\r\n' | '\r' | '\n') -> skip;
@@ -97,3 +105,4 @@ MINUS             : '-';
 MULT              : '*';
 DIV               : '/';
 MOD               : '%';
+OR                : '|';
