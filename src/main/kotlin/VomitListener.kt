@@ -142,7 +142,7 @@ class VomitListener(val output: StringBuilder) : AdventureBaseListener() {
     }
 
     override fun enterAssignment(ctx: AdventureParser.AssignmentContext?) {
-        output.append(ctx?.ID()?.text + " " + ctx?.EQ()?.text + " ")
+        output.append(ctx?.ID()?.text + " " + ctx?.EQ()?.text + " " + ctx?.expression()?.text)
     }
 
     override fun exitAssignment(ctx: AdventureParser.AssignmentContext?) {
