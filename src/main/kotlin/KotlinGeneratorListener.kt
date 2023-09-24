@@ -17,7 +17,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
             output.delete(lastNewline, output.length)
             indent()
         } else {
-            throw IllegalStateException("Error in generator: attempted to delete nom-empty line")
+            throw IllegalStateException("Error in generator: attempted to delete non-empty line")
         }
     }
 

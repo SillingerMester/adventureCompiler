@@ -1,134 +1,212 @@
 import com.example.AdventureBaseListener
+import com.example.AdventureListener
 import com.example.AdventureParser
 
-class VomitListener : AdventureBaseListener() {
+class VomitListener(val output: StringBuilder) : AdventureBaseListener() {
     private var indentLength = 0
     private fun indent() {
-        println()
-        print("".padEnd(indentLength, '\t'))
+        output.append("\n")
+        output.append("".padEnd(indentLength, '\t'))
+    }
+    private fun realign() {
+        //output.append("\r" + "".padEnd(indentLength, '\t')) //CR only works in console
+        val lastNewline = output.lastIndexOf('\n').coerceAtLeast(0)
+        if (output.substring(lastNewline).isBlank()) {
+            output.delete(lastNewline, output.length)
+            indent()
+        } else {
+            throw IllegalStateException("Error in generator: attempted to delete non-empty line")
+        }
     }
     override fun enterAdventure(ctx: AdventureParser.AdventureContext?) {
-        indent() ; print("adventure {") ; indentLength++
-        super.enterAdventure(ctx)
+        //indent() ; print("adventure {") ; indentLength++
     }
 
     override fun exitAdventure(ctx: AdventureParser.AdventureContext?) {
-        indentLength-- ; indent() ; print("} //adventure")
-        super.exitAdventure(ctx)
+        //indentLength-- ; indent() ; print("}//adventure")
     }
 
     override fun enterLocation(ctx: AdventureParser.LocationContext?) {
-        indent() ; print("location ${ctx?.ID()?.text} {") ; indentLength++
-        super.enterLocation(ctx)
+        output.append("location ${ctx?.ID()?.text} {")
+        indentLength++
+        indent()
     }
 
     override fun exitLocation(ctx: AdventureParser.LocationContext?) {
-        indentLength-- ; indent() ; print("} //location")
-        super.exitLocation(ctx)
+        indentLength--
+        realign()
+        output.append("}//location")
+        indent()
     }
 
     override fun enterNamedEvent(ctx: AdventureParser.NamedEventContext?) {
-        indent() ; print("event ${ctx?.ID()?.text} {") ; indentLength++
-        super.enterNamedEvent(ctx)
+        output.append("event ${ctx?.ID()?.text} {")
+        indentLength++
+        indent()
     }
 
     override fun exitNamedEvent(ctx: AdventureParser.NamedEventContext?) {
-        indentLength-- ; indent() ; print("} //namedEvent")
-        super.exitNamedEvent(ctx)
+        indentLength--
+        realign()
+        output.append("}//namedEvent")
+        indent()
     }
 
     override fun enterIntroduction(ctx: AdventureParser.IntroductionContext?) {
-        indent() ; print("introduction {") ; indentLength++
-        super.enterIntroduction(ctx)
+        output.append("introduction {")
+        indentLength++
+        indent()
     }
 
     override fun exitIntroduction(ctx: AdventureParser.IntroductionContext?) {
-        indentLength-- ; indent() ; print("} //introduction")
-        super.exitIntroduction(ctx)
+        indentLength--
+        realign()
+        output.append("}//introduction")
+        indent()
     }
 
     override fun enterUnnamedEvent(ctx: AdventureParser.UnnamedEventContext?) {
-        indent() ; print("event {") ; indentLength++
-        super.enterUnnamedEvent(ctx)
+        if (ctx?.STORY() != null) {
+            output.append(ctx.STORY().text + " ")
+        }
+        output.append("event {")
+        indentLength++
+        indent()
     }
 
     override fun exitUnnamedEvent(ctx: AdventureParser.UnnamedEventContext?) {
-        indentLength-- ; indent() ; println("} //event")
-        super.exitUnnamedEvent(ctx)
+        indentLength--
+        realign()
+        output.append("}//event")
+        indent()
     }
 
     override fun enterConditionsBlock(ctx: AdventureParser.ConditionsBlockContext?) {
-        indent() ; print("conditions {") ; indentLength++
-        super.enterConditionsBlock(ctx)
+        output.append("conditions {")
+        indentLength++
+        indent()
+
+        ctx?.children?.filterIsInstance<AdventureParser.ExpressionContext>()?.map { it.text }?.forEach {
+            output.append(it)
+            indent()
+        }
     }
 
     override fun exitConditionsBlock(ctx: AdventureParser.ConditionsBlockContext?) {
-        indentLength-- ; indent() ; print("} //conditions")
-        super.exitConditionsBlock(ctx)
+        indentLength--
+        realign()
+        output.append("}//conditions")
+        indent()
     }
 
     override fun enterStatementBlock(ctx: AdventureParser.StatementBlockContext?) {
-        indent() ; print("{") ; indentLength++
-        super.enterStatementBlock(ctx)
+        output.append("{")
+        indentLength++
+        indent()
     }
 
     override fun exitStatementBlock(ctx: AdventureParser.StatementBlockContext?) {
-        indentLength-- ; indent() ; print("}")
-        super.exitStatementBlock(ctx)
+        indentLength--
+        realign()
+        output.append("}//block")
+        indent()
     }
 
     override fun enterChoicesBlock(ctx: AdventureParser.ChoicesBlockContext?) {
-        indent() ; print("choices {") ; indentLength++
-        super.enterChoicesBlock(ctx)
+        output.append("choices {")
+        indentLength++
+        indent()
     }
 
     override fun exitChoicesBlock(ctx: AdventureParser.ChoicesBlockContext?) {
-        indentLength-- ; indent() ; print("} //choices")
-        super.exitChoicesBlock(ctx)
+        indentLength--
+        realign()
+        output.append("}//choices")
+        indent()
     }
 
     override fun enterChoice(ctx: AdventureParser.ChoiceContext?) {
-        indent() ; print(ctx?.start?.text + " ")
-        super.enterChoice(ctx)
+        output.append(ctx?.start?.text + " ")
+    }
+
+    override fun exitChoice(ctx: AdventureParser.ChoiceContext?) {
+        //do nothing
     }
 
     override fun enterVariable(ctx: AdventureParser.VariableContext?) {
-        indent() ; print(ctx?.VAR()?.text + " " + ctx?.ID() + " " + ctx?.EQ()?.text + " ")
-        super.enterVariable(ctx)
+        output.append(ctx?.VAR()?.text + " " + ctx?.ID() + " " + ctx?.EQ()?.text + " " + ctx?.expression()?.text)
+    }
+
+    override fun exitVariable(ctx: AdventureParser.VariableContext?) {
+        indent()
     }
 
     override fun enterAssignment(ctx: AdventureParser.AssignmentContext?) {
-        indent() ; print(ctx?.ID()?.text + " " + ctx?.EQ()?.text + " ")
-        super.enterAssignment(ctx)
+        output.append(ctx?.ID()?.text + " " + ctx?.EQ()?.text + " ")
     }
 
-    override fun enterExpression(ctx: AdventureParser.ExpressionContext?) {
-        print(ctx?.text + " ")
-        super.enterExpression(ctx)
+    override fun exitAssignment(ctx: AdventureParser.AssignmentContext?) {
+        indent()
     }
 
     override fun enterPrint(ctx: AdventureParser.PrintContext?) {
-        indent() ; print(ctx?.STRING()?.text + " " + (ctx?.CONTINUE_SIGN()?.text ?: "") + (ctx?.REPLACE_SIGN()?.text ?: "") + " ")
-        super.enterPrint(ctx)
+        output.append(ctx?.STRING()?.text + " " + (ctx?.CONTINUE_SIGN()?.text ?: "") + (ctx?.REPLACE_SIGN()?.text ?: "") + " ")
+    }
+
+    override fun exitPrint(ctx: AdventureParser.PrintContext?) {
+        indent()
+    }
+
+    override fun enterUntriggerEvent(ctx: AdventureParser.UntriggerEventContext?) {
+        output.append(ctx?.UNTRIGGER()?.text)
+    }
+
+    override fun exitUntriggerEvent(ctx: AdventureParser.UntriggerEventContext?) {
+        indent()
     }
 
     override fun enterJumpLocation(ctx: AdventureParser.JumpLocationContext?) {
-        indent() ; print(ctx?.GOTO()?.text + " " + ctx?.ID())
-        super.enterJumpLocation(ctx)
+        output.append(ctx?.GOTO()?.text + " " + ctx?.ID())
+    }
+
+    override fun exitJumpLocation(ctx: AdventureParser.JumpLocationContext?) {
+        indent()
     }
 
     override fun enterTriggerEvent(ctx: AdventureParser.TriggerEventContext?) {
-        indent() ; print(ctx?.TRIGGER()?.text + " " + ctx?.ID())
-        super.enterTriggerEvent(ctx)
+        output.append(ctx?.TRIGGER()?.text + " " + ctx?.ID())
+    }
+
+    override fun exitTriggerEvent(ctx: AdventureParser.TriggerEventContext?) {
+        indent()
+    }
+
+    override fun enterFinishEvent(ctx: AdventureParser.FinishEventContext?) {
+        output.append(ctx?.FINISH_EVENT()?.text)
+    }
+
+    override fun exitFinishEvent(ctx: AdventureParser.FinishEventContext?) {
+        indent()
+    }
+
+    override fun enterEndStory(ctx: AdventureParser.EndStoryContext?) {
+        output.append(ctx?.END_STORY()?.text)
+    }
+
+    override fun exitEndStory(ctx: AdventureParser.EndStoryContext?) {
+        indent()
     }
 
     override fun enterBranch(ctx: AdventureParser.BranchContext?) {
-        indent() ; print("branch {") ; indentLength++
-        super.enterBranch(ctx)
+        output.append("branch {")
+        indentLength++
+        indent()
     }
 
     override fun exitBranch(ctx: AdventureParser.BranchContext?) {
-        indentLength-- ; indent() ; print("} //branch")
-        super.exitBranch(ctx)
+        indentLength--
+        realign()
+        output.append("}//branch")
+        indent()
     }
 }
