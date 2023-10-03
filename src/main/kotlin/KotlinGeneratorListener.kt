@@ -2,8 +2,12 @@ import com.example.AdventureBaseListener
 import com.example.AdventureParser
 import com.example.AdventureParser.ExpressionContext
 import com.example.AdventureParser.UnnamedEventContext
+import SymbolTable.ExpressionType
 
-class KotlinGeneratorListener(val output: StringBuilder) : SemanticAnalyzingListener() {
+class KotlinGeneratorListener(
+    val output: StringBuilder,
+    val symbolTable: SymbolTable
+) : AdventureBaseListener() {
     private var indentLength = 0
     private fun indent() {
         output.append("\n")
@@ -114,8 +118,8 @@ class KotlinGeneratorListener(val output: StringBuilder) : SemanticAnalyzingList
     override fun enterVariable(ctx: AdventureParser.VariableContext?) {
         super.enterVariable(ctx)
         val varName = ctx?.ID()?.text!!
-        val typeOfInititalizer = getSymbolType(varName)
-        val typeOfVariable:String = when (typeOfInititalizer) {
+        val typeOfInitializer = symbolTable.getSymbolType(varName)
+        val typeOfVariable:String = when (typeOfInitializer) {
             ExpressionType.INT -> ": Int"
             ExpressionType.STRING -> ": String"
             ExpressionType.BOOL -> ": Boolean"

@@ -10,52 +10,14 @@ import com.example.AdventureParser.OtherExpressionUContext
 import org.antlr.v4.runtime.RuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
+import SymbolTable.ExpressionType
 
-open class SemanticAnalyzingListener : AdventureBaseListener() {
-    enum class ExpressionType {
-        INT, STRING, BOOL, LOCATION, EVENT, UNDEFINED
-    }
+class SemanticAnalyzingListener : AdventureBaseListener() {
 
     var error = false
     var warning = false
 
-    val symbolTable = Stack<MutableMap<String, ExpressionType>>()
-    init {
-        symbolTable.push(mutableMapOf())
-    }
-
-    fun getSymbolType(name: String): ExpressionType {
-        // Check if the symbol is defined in any of the active scopes (from innermost to outermost)
-        for (scope in symbolTable.asReversed()) {
-            if (scope.containsKey(name)) {
-                return scope[name] ?: ExpressionType.UNDEFINED
-            }
-        }
-        return ExpressionType.UNDEFINED
-    }
-
-    private fun getExpressionType(ctx: ExpressionContext): ExpressionType {
-        if(ctx.boolExpression() != null) {
-            return ExpressionType.BOOL
-        }
-        if (ctx.intExpression() != null) {
-            return ExpressionType.INT
-        }
-        if (ctx.otherExpression() != null) {
-            val actualExpression = ctx.otherExpression().otherExpressionU()
-            if (actualExpression.STRING() != null) {
-                return ExpressionType.STRING
-            }
-            if (actualExpression.HERE() != null || actualExpression.INTRODUCTION() != null) {
-                return ExpressionType.LOCATION
-            }
-            if (actualExpression.implicitTypedExpr() != null) {
-                return getSymbolType(actualExpression.implicitTypedExpr().ID().text)
-            }
-            return ExpressionType.UNDEFINED
-        }
-        return ExpressionType.UNDEFINED
-    }
+    val symbolTable = SymbolTable()
 
     private fun findEnclosingEvent(ctx: RuleContext): RuleContext? {
         var parentCtx: RuleContext = ctx
@@ -123,12 +85,12 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
         if (symbolTable.peek().contains(name)) {
             errorAlreadyDefined(ctx.ID().symbol)
         } else {
-            symbolTable.peek()[name] = getExpressionType(ctx.expression())
+            symbolTable.peek()[name] = symbolTable.getExpressionType(ctx.expression())
         }
     }
 
     override fun enterImplicitTypedExpr(ctx: AdventureParser.ImplicitTypedExprContext?) {
-        val type = getSymbolType(ctx!!.ID().text)
+        val type = symbolTable.getSymbolType(ctx!!.ID().text)
         if (type == ExpressionType.UNDEFINED) {
             errorNotDefined(ctx.ID().symbol)
             return
@@ -162,27 +124,27 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
 
     override fun enterJumpLocation(ctx: AdventureParser.JumpLocationContext?) {
         val target = ctx!!.ID().text
-        if (getSymbolType(target) != ExpressionType.LOCATION) {
+        if (symbolTable.getSymbolType(target) != ExpressionType.LOCATION) {
             printError(ctx.ID().symbol, "$target is not a location!")
         }
     }
 
     override fun enterTriggerEvent(ctx: AdventureParser.TriggerEventContext?) {
         val target = ctx!!.ID().text
-        if (getSymbolType(target) != ExpressionType.EVENT) {
+        if (symbolTable.getSymbolType(target) != ExpressionType.EVENT) {
             printError(ctx.ID().symbol, "$target is not an event!")
         }
     }
 
     override fun enterIntroduction(ctx: AdventureParser.IntroductionContext?) {
-        symbolTable.push(mutableMapOf())
+        symbolTable.push()
     }
 
     override fun exitIntroduction(ctx: AdventureParser.IntroductionContext?) {
         symbolTable.pop()
     }
     override fun enterLocation(ctx: AdventureParser.LocationContext?) {
-        symbolTable.push(mutableMapOf())
+        symbolTable.push()
     }
 
     override fun exitLocation(ctx: AdventureParser.LocationContext?) {
@@ -190,7 +152,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     }
 
     override fun enterNamedEvent(ctx: AdventureParser.NamedEventContext?) {
-        symbolTable.push(mutableMapOf())
+        symbolTable.push()
     }
 
     override fun exitNamedEvent(ctx: AdventureParser.NamedEventContext?) {
@@ -198,7 +160,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     }
 
     override fun enterUnnamedEvent(ctx: AdventureParser.UnnamedEventContext?) {
-        symbolTable.push(mutableMapOf())
+        symbolTable.push()
     }
 
     override fun exitUnnamedEvent(ctx: AdventureParser.UnnamedEventContext?) {
@@ -206,7 +168,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     }
 
     override fun enterStatementBlock(ctx: AdventureParser.StatementBlockContext?) {
-        symbolTable.push(mutableMapOf())
+        symbolTable.push()
     }
 
     override fun exitStatementBlock(ctx: AdventureParser.StatementBlockContext?) {
@@ -214,7 +176,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     }
 
     override fun enterBranch(ctx: AdventureParser.BranchContext?) {
-        symbolTable.push(mutableMapOf())
+        symbolTable.push()
     }
 
     override fun exitBranch(ctx: AdventureParser.BranchContext?) {

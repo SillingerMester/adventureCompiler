@@ -36,7 +36,7 @@ fun main() {
     if (!checker.error && !checker.warning) {
         println("Everything is OK. Generating file...")
 
-        val generator = KotlinGeneratorListener(StringBuilder())
+        val generator = KotlinGeneratorListener(StringBuilder(), checker.symbolTable)
         ParseTreeWalker.DEFAULT.walk(generator, tree)
         File("src/main/kotlin/Generated.kt").writeText(generator.output.toString())
         println("Generation finished without error.")
