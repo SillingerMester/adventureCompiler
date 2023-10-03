@@ -27,10 +27,12 @@ class KotlinGeneratorListener(
 
     override fun enterAdventure(ctx: AdventureParser.AdventureContext?) {
         super.enterAdventure(ctx)
-        output.append("""
-                import java.util.Stack
-                
-                
+        output.append("import java.util.Stack\n")
+        indent()
+        output.append("object Generated {")
+        indentLength++
+        indent()
+        val boilerplate = """
                 interface Location {
                     val here get() = this
                     fun execute()
@@ -104,14 +106,19 @@ class KotlinGeneratorListener(
                         }
                     }
                 }
-        """.trimIndent())
-        output.append("\n")
+        """.trimIndent()
+        boilerplate.lines().forEach {
+            output.append(it)
+            indent()
+        }
         indent()
     }
 
     override fun exitAdventure(ctx: AdventureParser.AdventureContext?) {
         super.exitAdventure(ctx)
-        output.append("// adventure end\n")
+        indentLength--
+        realign()
+        output.append("}// adventure end\n")
         indent()
     }
 
@@ -139,11 +146,11 @@ class KotlinGeneratorListener(
 
     override fun enterIntroduction(ctx: AdventureParser.IntroductionContext?) {
         super.enterIntroduction(ctx)
-        output.append("""
-                object introduction : Location {
-                    override fun execute() {
-              """.trimIndent())
-        indentLength += 2
+        output.append("object introduction : Location {")
+        indentLength++
+        indent()
+        output.append("override fun execute() {")
+        indentLength++
         indent()
     }
 
@@ -151,20 +158,23 @@ class KotlinGeneratorListener(
         super.exitIntroduction(ctx)
         indentLength -= 2
         realign()
-        output.append("""
+        val footers = """
                   }//execute
               }//introduction
-              """.trimIndent())
-        indent()
+              """.trimIndent()
+        footers.lines().forEach {
+            output.append(it)
+            indent()
+        }
     }
 
     override fun enterLocation(ctx: AdventureParser.LocationContext?) {
         super.enterLocation(ctx)
-        output.append("""
-                object ${ctx?.ID()?.text} : Location {
-                    override fun execute() {
-              """.trimIndent())
-        indentLength += 2
+        output.append("object ${ctx?.ID()?.text} : Location {")
+        indentLength++
+        indent()
+        output.append("override fun execute() {")
+        indentLength++
         indent()
     }
 
@@ -172,11 +182,14 @@ class KotlinGeneratorListener(
         super.exitLocation(ctx)
         indentLength -= 2
         realign()
-        output.append("""
+        val footers = """
                   }//execute
               }//location
-              """.trimIndent())
-        indent()
+              """.trimIndent()
+        footers.lines().forEach {
+            output.append(it)
+            indent()
+        }
     }
 
     override fun enterNamedEvent(ctx: AdventureParser.NamedEventContext?) {
