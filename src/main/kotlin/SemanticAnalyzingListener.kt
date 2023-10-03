@@ -11,7 +11,7 @@ import org.antlr.v4.runtime.RuleContext
 import org.antlr.v4.runtime.Token
 import java.util.*
 
-class SemanticAnalyzingListener : AdventureBaseListener() {
+open class SemanticAnalyzingListener : AdventureBaseListener() {
     enum class ExpressionType {
         INT, STRING, BOOL, LOCATION, EVENT, UNDEFINED
     }
@@ -19,12 +19,12 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
     var error = false
     var warning = false
 
-    private val symbolTable = Stack<MutableMap<String, ExpressionType>>()
+    val symbolTable = Stack<MutableMap<String, ExpressionType>>()
     init {
         symbolTable.push(mutableMapOf())
     }
 
-    private fun getSymbolType(name: String): ExpressionType {
+    fun getSymbolType(name: String): ExpressionType {
         // Check if the symbol is defined in any of the active scopes (from innermost to outermost)
         for (scope in symbolTable.asReversed()) {
             if (scope.containsKey(name)) {
@@ -93,6 +93,14 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
     // listener interface
 
     override fun enterAdventure(ctx: AdventureContext?) {
+        ctx?.children?.filterIsInstance<AdventureParser.IntroductionContext>()?.forEach {
+            val token = it.INTRODUCTION().symbol
+            if (symbolTable.peek().contains(token.text)) {
+                errorAlreadyDefined(token)
+            } else {
+                symbolTable.peek()[token.text] = ExpressionType.LOCATION
+            }
+        }
         ctx?.children?.filterIsInstance<AdventureParser.LocationContext>()?.forEach {
             if (symbolTable.peek().contains(it.ID().text)) {
                 errorAlreadyDefined(it.ID().symbol)
@@ -166,6 +174,13 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
         }
     }
 
+    override fun enterIntroduction(ctx: AdventureParser.IntroductionContext?) {
+        symbolTable.push(mutableMapOf())
+    }
+
+    override fun exitIntroduction(ctx: AdventureParser.IntroductionContext?) {
+        symbolTable.pop()
+    }
     override fun enterLocation(ctx: AdventureParser.LocationContext?) {
         symbolTable.push(mutableMapOf())
     }

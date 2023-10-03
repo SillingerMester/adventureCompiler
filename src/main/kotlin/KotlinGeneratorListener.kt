@@ -3,7 +3,7 @@ import com.example.AdventureParser
 import com.example.AdventureParser.ExpressionContext
 import com.example.AdventureParser.UnnamedEventContext
 
-class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener() {
+class KotlinGeneratorListener(val output: StringBuilder) : SemanticAnalyzingListener() {
     private var indentLength = 0
     private fun indent() {
         output.append("\n")
@@ -22,8 +22,10 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun enterAdventure(ctx: AdventureParser.AdventureContext?) {
+        super.enterAdventure(ctx)
         output.append("""
                 import java.util.Stack
+                
                 
                 interface Location {
                     val here get() = this
@@ -104,25 +106,37 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun exitAdventure(ctx: AdventureParser.AdventureContext?) {
+        super.exitAdventure(ctx)
         output.append("// adventure end\n")
         indent()
     }
 
     override fun enterVariable(ctx: AdventureParser.VariableContext?) {
-        val initializer = ctx?.expression()?.text + //TODO quick fix for lack of type checking
-                if (ctx?.expression()?.otherExpression()?.otherExpressionU()?.INTRODUCTION() != null) ".here" else ""
-        output.append("var " + ctx?.ID()?.text + " = " + initializer)
+        super.enterVariable(ctx)
+        val varName = ctx?.ID()?.text!!
+        val typeOfInititalizer = getSymbolType(varName)
+        val typeOfVariable:String = when (typeOfInititalizer) {
+            ExpressionType.INT -> ": Int"
+            ExpressionType.STRING -> ": String"
+            ExpressionType.BOOL -> ": Boolean"
+            ExpressionType.LOCATION -> ":Location"
+            ExpressionType.EVENT -> ""
+            ExpressionType.UNDEFINED -> ": Any"
+        }
+        val initializer = ctx.expression()?.text
+        output.append("var $varName$typeOfVariable = $initializer")
         indent()
     }
 
     override fun exitVariable(ctx: AdventureParser.VariableContext?) {
+        super.exitVariable(ctx)
         //do nothing
     }
 
     override fun enterIntroduction(ctx: AdventureParser.IntroductionContext?) {
+        super.enterIntroduction(ctx)
         output.append("""
                 object introduction : Location {
-                    //val introduction get() = this
                     override fun execute() {
               """.trimIndent())
         indentLength += 2
@@ -130,6 +144,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun exitIntroduction(ctx: AdventureParser.IntroductionContext?) {
+        super.exitIntroduction(ctx)
         indentLength -= 2
         realign()
         output.append("""
@@ -140,6 +155,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun enterLocation(ctx: AdventureParser.LocationContext?) {
+        super.enterLocation(ctx)
         output.append("""
                 object ${ctx?.ID()?.text} : Location {
                     override fun execute() {
@@ -149,6 +165,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun exitLocation(ctx: AdventureParser.LocationContext?) {
+        super.exitLocation(ctx)
         indentLength -= 2
         realign()
         output.append("""
@@ -159,12 +176,14 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun enterNamedEvent(ctx: AdventureParser.NamedEventContext?) {
+        super.enterNamedEvent(ctx)
         output.append("fun ${ctx?.ID()?.text}Event(here: Location) {")
         indentLength++
         indent()
     }
 
     override fun exitNamedEvent(ctx: AdventureParser.NamedEventContext?) {
+        super.exitNamedEvent(ctx)
         indentLength--
         realign()
         output.append("}//event")
@@ -172,6 +191,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun enterUnnamedEvent(ctx: UnnamedEventContext?) {
+        super.enterUnnamedEvent(ctx)
         output.append("(fun (here: Location) {")
         indentLength++
         indent()
@@ -187,6 +207,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun exitUnnamedEvent(ctx: UnnamedEventContext?) {
+        super.exitUnnamedEvent(ctx)
         //handle the indent created by conditions block
         if (ctx?.conditionsBlock() != null) {
             indentLength--
@@ -200,27 +221,33 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun enterStatement(ctx: AdventureParser.StatementContext?) {
+        super.enterStatement(ctx)
         //do nothing
     }
 
     override fun exitStatement(ctx: AdventureParser.StatementContext?) {
+        super.exitStatement(ctx)
         //do nothing
     }
 
     override fun enterAssignment(ctx: AdventureParser.AssignmentContext?) {
+        super.enterAssignment(ctx)
         output.append(ctx?.ID()?.text + " = " + ctx?.expression()?.text)
         indent()
     }
 
     override fun exitAssignment(ctx: AdventureParser.AssignmentContext?) {
+        super.exitAssignment(ctx)
         //do nothing
     }
 
     override fun enterBranch(ctx: AdventureParser.BranchContext?) {
+        super.enterBranch(ctx)
         //do nothing, if() will be produced by conditions block
     }
 
     override fun exitBranch(ctx: AdventureParser.BranchContext?) {
+        super.exitBranch(ctx)
         //handle the indent created by conditions block
         if (ctx?.conditionsBlock() != null) {
             indentLength--
@@ -232,6 +259,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
 
     var storyEventCounter = 0
     override fun enterConditionsBlock(ctx: AdventureParser.ConditionsBlockContext?) {
+        super.enterConditionsBlock(ctx)
         output.append("if (")
         indentLength++
         indent()
@@ -254,6 +282,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun exitConditionsBlock(ctx: AdventureParser.ConditionsBlockContext?) {
+        super.exitConditionsBlock(ctx)
         output.append(") {")
         indentLength++
         indent()
@@ -269,6 +298,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun enterChoicesBlock(ctx: AdventureParser.ChoicesBlockContext?) {
+        super.enterChoicesBlock(ctx)
         val allTheChoices = ctx?.children?.filterIsInstance<AdventureParser.ChoiceContext>()?.map { it.STRING().text }
         val choiceMap = (0..<allTheChoices!!.size).associate { (it + 1) to allTheChoices[it] }
         output.append("while (true) {")
@@ -291,6 +321,7 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun exitChoicesBlock(ctx: AdventureParser.ChoicesBlockContext?) {
+        super.exitChoicesBlock(ctx)
         output.append("else -> {") ; indentLength++
         indent() ; output.append("println(\">>>No such choice exists\")"); indentLength--
         indent() ; output.append("}//else") //else
@@ -302,20 +333,24 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun enterChoice(ctx: AdventureParser.ChoiceContext?) {
+        super.enterChoice(ctx)
         output.append("${ctx?.STRING()} -> ")
     }
 
     override fun exitChoice(ctx: AdventureParser.ChoiceContext?) {
+        super.exitChoice(ctx)
         //all valid statements indent() after themselves
     }
 
     override fun enterStatementBlock(ctx: AdventureParser.StatementBlockContext?) {
+        super.enterStatementBlock(ctx)
         output.append(" {")
         indentLength++
         indent()
     }
 
     override fun exitStatementBlock(ctx: AdventureParser.StatementBlockContext?) {
+        super.exitStatementBlock(ctx)
         indentLength--
         realign()
         output.append("}//block")
@@ -323,22 +358,27 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun enterJumpLocation(ctx: AdventureParser.JumpLocationContext?) {
+        super.enterJumpLocation(ctx)
         output.append("goto(" + ctx?.ID()?.text + ")")
     }
 
     override fun exitJumpLocation(ctx: AdventureParser.JumpLocationContext?) {
+        super.exitJumpLocation(ctx)
         indent()
     }
 
     override fun enterTriggerEvent(ctx: AdventureParser.TriggerEventContext?) {
+        super.enterTriggerEvent(ctx)
         output.append(ctx?.ID()?.text + "Event(here)")
     }
 
     override fun exitTriggerEvent(ctx: AdventureParser.TriggerEventContext?) {
+        super.exitTriggerEvent(ctx)
         indent()
     }
 
     override fun enterPrint(ctx: AdventureParser.PrintContext?) {
+        super.enterPrint(ctx)
         if (ctx!!.REPLACE_SIGN() == null) {
             if (ctx.CONTINUE_SIGN() == null) {
                 output.append("displayText(" + ctx.STRING().text + ")")
@@ -351,30 +391,37 @@ class KotlinGeneratorListener(val output: StringBuilder) : AdventureBaseListener
     }
 
     override fun exitPrint(ctx: AdventureParser.PrintContext?) {
+        super.exitPrint(ctx)
         indent()
     }
 
     override fun enterFinishEvent(ctx: AdventureParser.FinishEventContext?) {
+        super.enterFinishEvent(ctx)
         output.append("return")
     }
 
     override fun exitFinishEvent(ctx: AdventureParser.FinishEventContext?) {
+        super.exitFinishEvent(ctx)
         indent()
     }
 
     override fun enterEndStory(ctx: AdventureParser.EndStoryContext?) {
+        super.enterEndStory(ctx)
         output.append("end()")
     }
 
     override fun exitEndStory(ctx: AdventureParser.EndStoryContext?) {
+        super.exitEndStory(ctx)
         indent()
     }
 
     override fun enterUntriggerEvent(ctx: AdventureParser.UntriggerEventContext?) {
+        super.enterUntriggerEvent(ctx)
         output.append("clearedStoryEvents.pop()")
     }
 
     override fun exitUntriggerEvent(ctx: AdventureParser.UntriggerEventContext?) {
+        super.exitUntriggerEvent(ctx)
         indent()
     }
 }

@@ -10,7 +10,6 @@ import kotlin.io.path.Path
 
 
 fun main() {
-    //executeStory()
 
     val parser = AdventureParser(CommonTokenStream(AdventureLexer(CharStreams.fromPath(Path("example.txt")))))
     val tree = parser.adventure()
