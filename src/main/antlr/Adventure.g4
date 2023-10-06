@@ -9,7 +9,7 @@ grammar Adventure;
 }
 
 // Root of syntax tree
-adventure : (variable | introduction | location | namedEvent)*;
+adventure : (variable | introduction | location | namedEvent | codeInjection)*;
 
 // Top-level contructs
 variable           : VAR ID ASSIGN expression;
@@ -21,7 +21,7 @@ namedEvent         : EVENT ID CURLY_LEFT statement* choicesBlock? CURLY_RIGHT;
 unnamedEvent      : STORY? EVENT CURLY_LEFT conditionsBlock? statement* choicesBlock? CURLY_RIGHT;
 
 statement         : print | assignment | triggerEvent | branch | jumpLocation |
-                    finishEvent | endStory | untriggerEvent;
+                    finishEvent | endStory | untriggerEvent | codeInjection;
 
 branch            : BRANCH CURLY_LEFT conditionsBlock statement* choicesBlock? CURLY_RIGHT;
 conditionsBlock   : CONDITIONS CURLY_LEFT expression* CURLY_RIGHT;
@@ -39,7 +39,7 @@ untriggerEvent    : UNTRIGGER;
 assignment        : ID ASSIGN expression;
 
 // Value expressions
-expression        : boolExpression | intExpression | otherExpression;
+expression        : boolExpression | intExpression | otherExpression | codeInjectionExpr;
 
 intExpression     : intExpressionU | intExpressionB;
 intExpressionU    : INT | ((PLUS | MINUS) (intExpression | implicitTypedExpr)) | (PAREN_LEFT intExpression PAREN_RIGHT);
@@ -58,6 +58,13 @@ otherExpression   : otherExpressionU;
 otherExpressionU  : STRING | implicitTypedExpr | INTRODUCTION | HERE;
 
 implicitTypedExpr : ID;
+
+
+// Code injection
+codeInjection     : CODE_INJECTION;
+codeInjectionExpr : CODE_INJECTION;
+CODE_INJECTION    : '@[' .*? ']@';
+
 
 // Whitespace
 NEWLINE           : ('\r\n' | '\r' | '\n') -> skip;

@@ -1,6 +1,8 @@
 import com.example.AdventureBaseListener
+import com.example.AdventureLexer
 import com.example.AdventureListener
 import com.example.AdventureParser
+import org.antlr.v4.runtime.tree.TerminalNode
 
 class VomitListener(val output: StringBuilder) : AdventureBaseListener() {
     private var indentLength = 0
@@ -208,5 +210,32 @@ class VomitListener(val output: StringBuilder) : AdventureBaseListener() {
         realign()
         output.append("}//branch")
         indent()
+    }
+
+    override fun enterCodeInjection(ctx: AdventureParser.CodeInjectionContext?) {
+        val injectedCode = ctx!!.CODE_INJECTION().text.drop(2).dropLast(2).trim()
+        if (injectedCode.contains('\r') || injectedCode.contains('\n')) {
+            val lines = injectedCode.lines()
+            output.append("@[")
+            indentLength++
+            indent()
+            lines.forEach {
+                output.append(it)
+                indent()
+            }
+            indentLength--
+            realign()
+            output.append("]@")
+            indent()
+        } else {
+            output.append("@[ $injectedCode ]@")
+            indent()
+        }
+    }
+
+    override fun visitTerminal(node: TerminalNode?) {
+        if (node?.symbol?.type == AdventureLexer.COMMENT) {
+            output.append(node.text)
+        }
     }
 }

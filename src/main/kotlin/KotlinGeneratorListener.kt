@@ -289,7 +289,13 @@ class KotlinGeneratorListener(
             }
         }
 
-        ctx.children.filterIsInstance<ExpressionContext>().map { it.text }.forEach {
+        ctx.children.filterIsInstance<ExpressionContext>().map {
+            if (it.text.startsWith("@[") && it.text.endsWith("]@")) {
+                it.text.drop(2).dropLast(2)
+            } else {
+                it.text
+            }
+        }.forEach {
             output.append("($it) &&")
             indent()
         }
@@ -440,5 +446,25 @@ class KotlinGeneratorListener(
     override fun exitUntriggerEvent(ctx: AdventureParser.UntriggerEventContext?) {
         super.exitUntriggerEvent(ctx)
         indent()
+    }
+
+    override fun enterCodeInjection(ctx: AdventureParser.CodeInjectionContext?) {
+        super.enterCodeInjection(ctx)
+        val injectedCode = ctx!!.CODE_INJECTION().text.drop(2).dropLast(2).trim()
+        if (injectedCode.contains('\r') || injectedCode.contains('\n')) {
+            val lines = injectedCode.lines()
+            lines.forEach {
+                output.append(it)
+                indent()
+            }
+        } else {
+            output.append(injectedCode)
+            indent()
+        }
+    }
+
+    override fun exitCodeInjection(ctx: AdventureParser.CodeInjectionContext?) {
+        super.exitCodeInjection(ctx)
+        //do nothing
     }
 }

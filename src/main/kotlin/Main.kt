@@ -21,7 +21,8 @@ fun main() {
 
     print("Testing vomit and re-digest: ")
     val tree2 = AdventureParser(CommonTokenStream(AdventureLexer(CharStreams.fromString(vomitter.output.toString())))).adventure()
-    if (compareParseTrees(tree, tree2)) {
+    val vomitCheck = compareParseTrees(tree, tree2)
+    if (vomitCheck) {
         println("trees match")
     } else {
         println("trees don't match")
@@ -33,13 +34,15 @@ fun main() {
     val checker = SemanticAnalyzingListener()
     ParseTreeWalker.DEFAULT.walk(checker, tree)
 
-    if (!checker.error && !checker.warning) {
+    if (vomitCheck && !checker.error && !checker.warning) {
         println("Everything is OK. Generating file...")
 
         val generator = KotlinGeneratorListener(StringBuilder(), checker.symbolTable)
         ParseTreeWalker.DEFAULT.walk(generator, tree)
         File("src/main/kotlin/Generated.kt").writeText(generator.output.toString())
         println("Generation finished without error.")
+    } else {
+        println(vomitter.output.toString())
     }
 }
 
