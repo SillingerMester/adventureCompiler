@@ -325,6 +325,7 @@ event floweyTrickedYou {
 }
 
 story event doggoFight {
+    "You have encountered Doggo."
     var stayStill = 3
     var doggoHP = 30
     var stayedStill = false

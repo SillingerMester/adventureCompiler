@@ -245,10 +245,23 @@ class KotlinGeneratorListener(
 
     override fun enterNamedEvent(ctx: AdventureParser.NamedEventContext?) {
         super.enterNamedEvent(ctx)
+        if (ctx?.STORY() != null) {
+            output.append("val ${ctx.ID().text} = \"${ctx.ID().text}\"")
+            indent()
+        }
         output.append("fun ${ctx?.ID()?.text}Event(here: Location) {")
         indentLength++
         indent()
-        //todo handle story events
+
+        //handle story events
+        //there is no conditions block here
+        //handle story event where there are no conditions
+        if (ctx!!.STORY() != null) {
+            output.append("if(clearedStoryEvents.contains(${ctx.ID().text})) return")
+            indent()
+            output.append("clearedStoryEvents.push(${ctx.ID().text})")
+            indent()
+        }
     }
 
     override fun exitNamedEvent(ctx: AdventureParser.NamedEventContext?) {
