@@ -366,11 +366,11 @@ class VomitListener(val output: StringBuilder) : AdventureBaseListener() {
     }
 
     override fun enterAfterEvent(ctx: AdventureParser.AfterEventContext?) {
-        output.append(ctx!!.AFTER().text + " " + ctx.ID().text)
+        //do nothing, it isn't a statement
     }
 
     override fun exitAfterEvent(ctx: AdventureParser.AfterEventContext?) {
-        indent()
+        //do nothing, it isn't a statement
     }
 
     override fun enterHasItem(ctx: AdventureParser.HasItemContext?) {

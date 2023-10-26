@@ -13,8 +13,8 @@ class SymbolTable {
             ExpressionType.BOOL -> ": Boolean"
             ExpressionType.LOCATION -> ":Location"
             ExpressionType.EVENT -> ""
-            ExpressionType.ITEM -> ""
-            ExpressionType.UNDEFINED -> ""//": Any"
+            ExpressionType.ITEM -> ": Item"
+            ExpressionType.UNDEFINED -> ": Any"
         }
     }
 
@@ -52,6 +52,9 @@ class SymbolTable {
                 return getSymbolType(actualExpression.implicitTypedExpr().ID().text)
             }
             return ExpressionType.UNDEFINED
+        }
+        if (ctx.implicitTypedExpr() != null) {
+            return getSymbolType(ctx.implicitTypedExpr().ID().text)
         }
         return ExpressionType.UNDEFINED
     }

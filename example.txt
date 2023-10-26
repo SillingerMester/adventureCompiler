@@ -8,9 +8,10 @@ var charaName = "CHARA"
 var atk = 1
 var xp = 0
 var lv = 1
+var weapon = nothing
 
 stats {
-    hp gp maxHp atk xp lv
+    hp gp maxHp atk xp lv weapon
 }
 
 inventory {
@@ -48,8 +49,9 @@ event levelUpCheck {
 }
 
 item monsterCandy {
-    description "Heals 5 hp"
+    description "Monster candy: Heals 5 hp"
     use {
+        "You ate the monster candy"
         hp = max(maxHp, hp + 5)
         consume
         branch {
@@ -64,19 +66,74 @@ item monsterCandy {
 }
 
 item stick {
-    description "Good and sturdy"
+    description "Stick: Good and sturdy"
     use {
+        "You equipped the stick."
         equip
     }
     equip {
-        //stats modify
+        atk = atk + 2
+        //todo do this better
+        @[ weapon.unequip() ]@ //do the unequip action
+        get_item weapon        //place the weapon in the inventory
+        weapon = stick         //use this one as a weapon
+        consume                //remove this one from inventory
     }
     unequip {
-        //stats modify
+        atk = atk - 2
     }
 }
 
-event itemsSubmenu { }
+item nothing {
+    description "Nothing but your bare hands. Use this to replace your weapon."
+    use {
+        "You put away your weapon"
+        equip
+    }
+    equip {
+        atk = atk + 2
+        //todo do this better
+        @[ weapon.unequip() ]@ //do the unequip action
+        get_item weapon        //place the weapon in the inventory
+        weapon = nothing       //use this one as a weapon
+        consume                //remove this one from inventory
+    }
+}
+
+event itemsSubmenu {
+    var fightMode = true
+    branch {
+        conditions { fightMode }
+        @[
+			val itemMap = (0..<inventory.size).associateWith { inventory[it] }
+			println("Choose an action and an item, such as: info 15")
+			println("Available actions: use, info, drop, exit")
+			println("Your items:")
+			itemMap.forEach {
+				println("${it.key} ${it.value::class.simpleName}")
+			}
+			while (true) {
+				print("Your choice : ")
+				try {
+					val choice = readln().split(' ')
+					when (choice[0]) {
+						"exit" -> return
+						"use" -> itemMap[choice[1].toInt()]!!.use()
+						"info" -> println(itemMap[choice[1].toInt()]!!.description)
+						"drop" -> {
+						    val item = itemMap[choice[1].toInt()]!!
+						    inventory.remove(item)
+						    println("You dropped the ${item::class.simpleName}")
+						}
+					}
+				} catch (_: Exception) {
+					println("No such choice exists")
+				}
+			}
+        ]@
+
+    }
+}
 
 introduction {
     "You climbed a mountain that is famous for making people disappear. In hindsight, that might have been a bad idea."
@@ -93,7 +150,7 @@ introduction {
         }
     }
     "This DEFINITELY isn't an UNDERTALE ripoff." ->
-    @[ print("Please name you chara: ") ; charaName = readLine()!! ]@
+    @[ print("Please name you chara: ") ; charaName = readln() ]@
     choices {
         "Begin" goto ruinsEntrance
     }
@@ -163,6 +220,9 @@ event floweyIntro {
 location ruinsEntranceStairs {
     "There are stairs on the east side, leading up to a door. There's also a door on the west side."
     "There's a you-sized orb in the middle of the room. It shines with golden light, and radiates a pleasant warmth."
+    story event {
+        "You catch a glimpse of Toriel as she leaves the room. You can't catch up"
+    }
     choices {
         "Go west" goto ruinsEntranceFlowey
         "Touch the orb" {
@@ -174,11 +234,25 @@ location ruinsEntranceStairs {
         }
         "Go east" {
             "Your adventure finally begins." ->
-            "What a shame I didn't implement it." ->
-            "So, ...uuuh... YOU WIN!"
-            end //Terminate the story
+            goto fightTestRoom
+            //"What a shame I didn't implement it." ->
+            //"So, ...uuuh... YOU WIN!"
+            //end //Terminate the story
         }
     }
+}
+
+location fightTestRoom {
+    "This is the fight test room. You will fight here."
+    trigger doggoFight
+    story event {
+        conditions {
+            after(doggoFight)
+        }
+        trigger froggitFight
+    }
+    "You're done."
+    end
 }
 
 event floweyFirstFight {

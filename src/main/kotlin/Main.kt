@@ -10,6 +10,7 @@ import kotlin.io.path.Path
 
 
 fun main() {
+    //return Generated.executeStory()
 
     val parser = AdventureParser(CommonTokenStream(AdventureLexer(CharStreams.fromPath(Path("example.txt")))))
     val tree = parser.adventure()
@@ -37,7 +38,7 @@ fun main() {
     if (vomitCheck && !checker.error && !checker.warning) {
         println("Everything is OK. Generating file...")
 
-        val generator = KotlinGeneratorListener(StringBuilder(), checker.symbolTable)
+        val generator = KotlinGeneratorListener(StringBuilder())
         ParseTreeWalker.DEFAULT.walk(generator, tree)
         File("src/main/kotlin/Generated.kt").writeText(generator.output.toString())
         println("Generation finished without error.")

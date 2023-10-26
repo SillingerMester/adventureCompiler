@@ -6,8 +6,7 @@ import com.example.AdventureParser.StatsBlockContext
 
 class KotlinGeneratorListener(
     val output: StringBuilder,
-    val symbolTable: SymbolTable
-) : AdventureBaseListener() {
+) : SemanticAnalyzingListener() {
     private var indentLength = 0
     private fun indent() {
         output.append("\n")
@@ -21,9 +20,9 @@ class KotlinGeneratorListener(
             output.delete(lastNewline, output.length)
             indent()
         } else {
-            //throw IllegalStateException("Error in generator: attempted to delete non-empty line")
-            indent()
-            realign()
+            throw IllegalStateException("Error in generator: attempted to delete non-empty line")
+            //indent()
+            //realign()
         }
     }
 
@@ -150,6 +149,7 @@ class KotlinGeneratorListener(
                 fun after(storyEvent: String) = clearedStoryEvents.contains(storyEvent)
                 
                 interface Item {
+                    val description: String
                     fun use() { }
                     fun equip() { }
                     fun unequip() { }
@@ -280,8 +280,9 @@ class KotlinGeneratorListener(
         //handle the indent created by conditions block
         if (ctx?.conditionsBlock() != null) {
             indentLength--
-            indent()
+            realign()
             output.append("}")
+            indent()
         }
         indentLength--
         realign()
@@ -642,6 +643,8 @@ class KotlinGeneratorListener(
         super.enterItem(ctx)
         output.append("object ${ctx!!.ID().text} : Item {")
         indentLength++
+        indent()
+        output.append("override val description = " + ctx.STRING())
         indent()
     }
 

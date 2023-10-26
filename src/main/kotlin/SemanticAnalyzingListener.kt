@@ -12,7 +12,7 @@ import org.antlr.v4.runtime.Token
 import java.util.*
 import SymbolTable.ExpressionType
 
-class SemanticAnalyzingListener : AdventureBaseListener() {
+open class SemanticAnalyzingListener : AdventureBaseListener() {
 
     var error = false
     var warning = false
@@ -227,11 +227,11 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
     override fun exitItem(ctx: AdventureParser.ItemContext?) {
         symbolTable.pop()
     }
-    override fun enterItemFunction(ctx: AdventureParser.ItemFunctionContext) {
+    override fun enterItemFunction(ctx: AdventureParser.ItemFunctionContext?) {
         symbolTable.push()
     }
 
-    override fun exitItemFunction(ctx: AdventureParser.ItemFunctionContext) {
+    override fun exitItemFunction(ctx: AdventureParser.ItemFunctionContext?) {
         symbolTable.pop()
     }
     override fun enterConsumeItem(ctx: AdventureParser.ConsumeItemContext?) {
@@ -326,6 +326,20 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
 
     override fun exitInventoryBlock(ctx: AdventureParser.InventoryBlockContext?) {
         //do nothing
+    }
+
+    override fun enterConditionsBlock(ctx: AdventureParser.ConditionsBlockContext?) {
+        ctx!!.expression().forEach {
+            if (
+                it.codeInjectionExpr() == null && it.boolExpression() == null && (
+                        it.implicitTypedExpr() == null ||
+                                it.implicitTypedExpr() != null &&
+                                symbolTable.getSymbolType(it.implicitTypedExpr().ID().text) != ExpressionType.BOOL
+                    )
+                ) {
+                printError(it.start, "Bool expression required")
+            }
+        }
     }
 
 }
