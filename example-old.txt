@@ -1,101 +1,36 @@
 
-
+// You can declare variables to be used in the story.
+var lastSaveLocation = introduction
 var floweyRemembers = false
-var hp = 20
-var maxHp = 20
-var gp = 0
-var charaName = "CHARA"
-var atk = 1
-var xp = 0
-var lv = 1
 
-stats {
-    hp gp maxHp atk xp lv
-}
-
-inventory {
-    stick
-}
-
-@[
-    fun displayStats() {
-        displayText("$charaName hp=$hp/$maxHp gp=$gp")
-    }
-]@
-
-event youDie {
-    "You're in pain. Everything goes dark. You die."
-    "..."
-    "Or do you?"
-    load
-}
-
-event healthCheck {
-    branch {
-        conditions { hp <= 0 }
-        trigger youDie
-    }
-}
-
-event levelUpCheck {
-    branch {
-        conditions {
-            (xp / 10) + 1 > lv
-        }
-        lv = (xp / 10) + 1
-        "Your LOVE increased =)"
-    }
-}
-
-item monsterCandy {
-    description "Heals 5 hp"
-    use {
-        hp = max(maxHp, hp + 5)
-        consume
-        branch {
-            conditions {
-                hp == maxHp
-            }
-            "Your HP was maxed out"
-        }
-        "You healed 5 HP"
-    }
-    //implicit equip and unequip
-}
-
-item stick {
-    description "Good and sturdy"
-    use {
-        equip
-    }
-    equip {
-        //stats modify
-    }
-    unequip {
-        //stats modify
-    }
-}
-
-event itemsSubmenu { }
-
+// Story begins here, but you can jump here anytime. Console should clear when executing it.
 introduction {
+    // String literals are printed out. The player needs to press enter after each one.
     "You climbed a mountain that is famous for making people disappear. In hindsight, that might have been a bad idea."
     "You stumbled and fell into a hole. It was quite a fall..."
     "You wake up between flowers and moss. Somehow you're alright."
+    // You can execute stuff conditionally by branching. They are processed in the order they're written, but it is recommended to use mutually exlusive conditions.
     branch {
+        // One block of conditions per branch. The logical AND is taken.
         conditions {
-            @[ lastSave.location != introduction ]@
+            lastSaveLocation != introduction
+            lastSaveLocation != floweysWorld
         }
+        // The branch is executed sequentially.
         "Hey, there's a save. What do you do?"
+        // Choices can be presented anywhere. The player can choose exactly one.
         choices {
-            "Continue" load
-            "Reset" save
+            "Continue" goto lastSaveLocation // Choice name and action. Use {block} for multiple actions.
+            "Reset" {
+                 lastSaveLocation = introduction // Assign variables based on player input.
+                 goto ruinsEntrance // Change location (stops executing current location and begins the new one)
+            }
         }
     }
-    "This DEFINITELY isn't an UNDERTALE ripoff." ->
-    @[ print("Please name you chara: ") ; charaName = readLine()!! ]@
+    // Execution continues if branch didn't jump out of parent block.
+    "This DEFINITELY isn't an UNDERTALE ripoff. And no, you can't name yourself." -> // If you place -> after a string, the player needn't press enter to continue.
     choices {
-        "Begin" goto ruinsEntrance
+        "Begin" goto ruinsEntrance // If you had zero choices, the game would lock up. So don't do that.
     }
 }
 
@@ -168,9 +103,7 @@ location ruinsEntranceStairs {
         "Touch the orb" {
             "You touch the orb. The warmth spreads through you. (all injuries healed)"
             "You're filled with Determination. (savepoint reached)"
-            hp = maxHp
-            @[ displayStats() ]@
-            save
+            lastSaveLocation = here
         }
         "Go east" {
             "Your adventure finally begins." ->
@@ -181,10 +114,15 @@ location ruinsEntranceStairs {
     }
 }
 
+location floweysWorld {
+    "You shouldn't have come here."
+    trigger youDie
+}
+
 event floweyFirstFight {
     "Flowey: Your soul starts out weak, but you can become stronger by gaining LV."
     "Flowey: What does LV stand for? Why, LOVE of course!"
-    "Flowey: You want some LOVE, don't you? Don't worry, I'll share some with you!"
+    "Flowey: You would want some LOVE, don't you? Don't worry, I'll share some with you!"
     "Fist-sized translucent white orbs materialize in the air around flowey. He winks at you cutely."
     "Flowey: Down here LOVE is shared through little white... 'friendliness pellets'. Just touch them to absorb." ->
     "The 'friendliness pellets' are getting closer to you. They move slowly. You could dodge them with ease."
@@ -231,14 +169,8 @@ event floweyFirstFight {
 event torielSavesYouFromFlowey {
     "Flowey: DIE!!" ->
     "The bullets encircle you. There's nowhere to run. Flowey laughs maniacally as they slowly close in..."
-    "..."
     "Suddenly, the bullets disappear! Flowey looks confused. Before he can even react, a fireball hits him!"
     "Flowey's hurt. He runs away!"
-    "Youe're saved by a... goat person?"
-    "She calls herself Toriel, and this place is mostly hers. Lore dump time...."
-    "This place is called the underground, home of monsters. Currently, you're the only human here." ->
-    "You're in the Ruins area, which Toriel oversees."
-    "She gives you direction to her house, then leaves to 'prepare a surprise'. You only have good feelings about this."
 }
 
 event floweyTrickedYou {
@@ -250,90 +182,10 @@ event floweyTrickedYou {
     trigger youDie
 }
 
-story event doggoFight {
-    var stayStill = 3
-    var doggoHP = 30
-    var stayedStill = false
-    choices {
-        //FIGHT
-        "Fight Doggo" {
-            doggoHP = doggoHP - atk
-            branch {
-                conditions {
-                    doggoHP <= 0
-                }
-                "Doggo turns into dust."
-                "You won. Gained 30 XP and 20 Gold"
-                gp = gp + 20
-                xp = xp + 30
-                trigger levelUpCheck
-                finish
-            }
-        }
-        "Try to run" {
-            stayedStill = false
-        }
-        "Stay still" {
-            stayedStill = true
-        }
-
-        //ACT
-        "Check" {
-            "Doggo. Only sees moving things"
-        }
-        "Play" {
-            branch {
-                conditions { has_item(stick) }
-                "You throw the sick. Doggo fetches it. He seems happy."
-                stayStill = 0
-            }
-            branch {
-                conditions { !has_item(stick) }
-                "You want play with Doggo, but can't. If only you had a stick..."
-           }
-        }
-        "Pet" {
-            //only works if he spared you
-        }
-
-        //ITEM
-        "Item" {
-            trigger itemsSubmenu //will be different in overworld and fight
-        }
-
-        //MERCY
-        "Spare" {
-            branch {
-                conditions {
-                    stayStill <= 0
-                }
-                "You won. Gained 0 XP and 10 Gold"
-                finish
-            }
-        }
-
-        //monster's turn
-        "beforeEachTurn" {
-            //display stats
-            //maybe some ASCII art
-        }
-        "afterEachTurn" { //will only execute if choice returned normally
-            branch {
-                conditions { stayedStill }
-                stayStill = stayStill - 1
-                "You stayed still. Doggo couldn't find you."
-            }
-            branch {
-                conditions { !stayedStill }
-                hp = hp - 5
-                "Received 5 damage"
-                trigger healthCheck
-            }
-        }
-    }
+event youDie {
+    "You're in pain. Everything goes dark. You die."
+    "..."
+    "Or do you?"
+    goto lastSaveLocation
 }
 
-
-event froggitFight {
-
-}

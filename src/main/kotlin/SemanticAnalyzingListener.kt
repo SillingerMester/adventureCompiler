@@ -30,6 +30,17 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
         return null
     }
 
+    private fun findEnclosingIem(ctx: RuleContext): RuleContext? {
+        var parentCtx: RuleContext = ctx
+        while (parentCtx !is AdventureContext) {
+            if (parentCtx is AdventureParser.ItemContext) {
+                return parentCtx
+            }
+            parentCtx = parentCtx.parent
+        }
+        return null
+    }
+
     private fun printMessage(what: String) {
         print(what + "\n")
     }
@@ -63,6 +74,25 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
                 symbolTable.peek()[token.text] = ExpressionType.LOCATION
             }
         }
+
+        var statsBlockExists = false
+        ctx?.children?.filterIsInstance<AdventureParser.StatsBlockContext>()?.forEach {
+            val token = it.STATS().symbol
+            if (statsBlockExists) {
+                printError(token, "stats block already defined")
+            }
+            statsBlockExists = true
+        }
+
+        var inventoryBlockExists = false
+        ctx?.children?.filterIsInstance<AdventureParser.InventoryBlockContext>()?.forEach {
+            val token = it.INVENTORY().symbol
+            if (inventoryBlockExists) {
+                printError(token, "inventory block already defined")
+            }
+            inventoryBlockExists = true
+        }
+
         ctx?.children?.filterIsInstance<AdventureParser.LocationContext>()?.forEach {
             if (symbolTable.peek().contains(it.ID().text)) {
                 errorAlreadyDefined(it.ID().symbol)
@@ -71,11 +101,19 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
             }
         }
         ctx?.children?.filterIsInstance<AdventureParser.NamedEventContext>()?.forEach {
-            if (symbolTable.peek().contains(it.text)) {
+            if (symbolTable.peek().contains(it.ID().text)) {
                 ctx.start.line
                 errorAlreadyDefined(it.ID().symbol)
             } else {
                 symbolTable.peek()[it.ID().text] = ExpressionType.EVENT
+            }
+        }
+        ctx?.children?.filterIsInstance<AdventureParser.ItemContext>()?.forEach {
+            if (symbolTable.peek().contains(it.ID().text)) {
+                ctx.start.line
+                errorAlreadyDefined(it.ID().symbol)
+            } else {
+                symbolTable.peek()[it.ID().text] = ExpressionType.ITEM
             }
         }
     }
@@ -182,4 +220,112 @@ class SemanticAnalyzingListener : AdventureBaseListener() {
     override fun exitBranch(ctx: AdventureParser.BranchContext?) {
         symbolTable.pop()
     }
+    override fun enterItem(ctx: AdventureParser.ItemContext?) {
+        symbolTable.push()
+    }
+
+    override fun exitItem(ctx: AdventureParser.ItemContext?) {
+        symbolTable.pop()
+    }
+    override fun enterItemFunction(ctx: AdventureParser.ItemFunctionContext) {
+        symbolTable.push()
+    }
+
+    override fun exitItemFunction(ctx: AdventureParser.ItemFunctionContext) {
+        symbolTable.pop()
+    }
+    override fun enterConsumeItem(ctx: AdventureParser.ConsumeItemContext?) {
+        val itemDef = findEnclosingIem(ctx!!)
+        if (itemDef == null) {
+            printError(ctx.CONSUME().symbol, "'consume' only works inside item definitions. Did you mean 'use'?")
+        }
+    }
+
+    override fun exitConsumeItem(ctx: AdventureParser.ConsumeItemContext?) {
+        //do nothing
+    }
+
+    override fun enterEquipItem(ctx: AdventureParser.EquipItemContext?) {
+        val itemDef = findEnclosingIem(ctx!!)
+        if (itemDef == null) {
+            printError(ctx.EQUIP().symbol, "'equip' only works inside item definitions. Did you mean 'use'?")
+        }
+    }
+
+    override fun exitEquipItem(ctx: AdventureParser.EquipItemContext?) {
+        //do nothing
+    }
+
+    override fun enterUnequipItem(ctx: AdventureParser.UnequipItemContext?) {
+        val itemDef = findEnclosingIem(ctx!!)
+        if (itemDef == null) {
+            printError(ctx.UNEQUIP().symbol, "'unequip' only works inside item definitions. Did you mean 'use'?")
+        }
+    }
+
+    override fun exitUnequipItem(ctx: AdventureParser.UnequipItemContext?) {
+        //do nothing
+    }
+
+    override fun enterGetItem(ctx: AdventureParser.GetItemContext?) {
+        val item = ctx!!.ID().text
+        val type = symbolTable.getSymbolType(item)
+        if (type != ExpressionType.ITEM) {
+            printError(ctx.ID().symbol, "$item is not an item!")
+        }
+    }
+
+    override fun exitGetItem(ctx: AdventureParser.GetItemContext?) {
+        //do nothing
+    }
+
+    override fun enterBuiltinMax(ctx: AdventureParser.BuiltinMaxContext?) {
+        //do nothing
+    }
+
+    override fun exitBuiltinMax(ctx: AdventureParser.BuiltinMaxContext?) {
+        //do nothing
+    }
+
+    override fun enterAfterEvent(ctx: AdventureParser.AfterEventContext?) {
+        val event = ctx!!.ID().text
+        val type = symbolTable.getSymbolType(event)
+        if (type != ExpressionType.EVENT) {
+            printError(ctx.ID().symbol, "$event is not an event!")
+            //todo check if event is story event
+        }
+    }
+
+    override fun exitAfterEvent(ctx: AdventureParser.AfterEventContext?) {
+        //do nothing
+    }
+
+    override fun enterHasItem(ctx: AdventureParser.HasItemContext?) {
+        val item = ctx!!.ID().text
+        val type = symbolTable.getSymbolType(item)
+        if (type != ExpressionType.ITEM) {
+            printError(ctx.ID().symbol, "$item is not an item!")
+        }
+    }
+
+    override fun exitHasItem(ctx: AdventureParser.HasItemContext?) {
+        //do nothing
+    }
+
+    override fun exitCodeInjection(ctx: AdventureParser.CodeInjectionContext?) {
+        //do nothing
+    }
+
+    override fun enterInventoryBlock(ctx: AdventureParser.InventoryBlockContext?) {
+        ctx!!.ID().forEach {
+            if (symbolTable.getSymbolType(it.text) != ExpressionType.ITEM) {
+                printError(it.symbol, "${it.text} is not an item!")
+            }
+        }
+    }
+
+    override fun exitInventoryBlock(ctx: AdventureParser.InventoryBlockContext?) {
+        //do nothing
+    }
+
 }

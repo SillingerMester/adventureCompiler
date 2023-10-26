@@ -9,25 +9,30 @@ grammar Adventure;
 }
 
 // Root of syntax tree
-adventure : (variable | introduction | location | namedEvent | codeInjection)*;
+adventure : (variable | introduction | location | namedEvent | codeInjection | statsBlock | inventoryBlock | item)*;
 
 // Top-level contructs
 variable           : VAR ID ASSIGN expression;
 introduction       : INTRODUCTION CURLY_LEFT (statement | unnamedEvent)* choicesBlock? CURLY_RIGHT;
 location           : LOCATION ID CURLY_LEFT (statement | unnamedEvent)* choicesBlock? CURLY_RIGHT;
-namedEvent         : EVENT ID CURLY_LEFT statement* choicesBlock? CURLY_RIGHT;
+namedEvent         : STORY? EVENT ID CURLY_LEFT statement* choicesBlock? CURLY_RIGHT;
+statsBlock         : STATS CURLY_LEFT ID* CURLY_RIGHT;
+inventoryBlock     : INVENTORY CURLY_LEFT ID* CURLY_RIGHT;
+item               : ITEM ID CURLY_LEFT DESCRIPTION STRING itemFunction* CURLY_RIGHT;
 
 // Second-level constructs
 unnamedEvent      : STORY? EVENT CURLY_LEFT conditionsBlock? statement* choicesBlock? CURLY_RIGHT;
 
-statement         : print | assignment | triggerEvent | branch | jumpLocation |
-                    finishEvent | endStory | untriggerEvent | codeInjection;
+statement         : print | assignment | triggerEvent | branch | jumpLocation | variable  | finishEvent |
+                    endStory | untriggerEvent | codeInjection | loadGame | saveGame | consumeItem |
+                    equipItem | unequipItem | getItem;
 
 branch            : BRANCH CURLY_LEFT conditionsBlock statement* choicesBlock? CURLY_RIGHT;
 conditionsBlock   : CONDITIONS CURLY_LEFT expression* CURLY_RIGHT;
 choicesBlock      : CHOICES CURLY_LEFT choice* CURLY_RIGHT;
 choice            : STRING (statementBlock | statement);
 statementBlock    : CURLY_LEFT statement* choicesBlock? CURLY_RIGHT;
+itemFunction     : (EQUIP | UNEQUIP | ID) (statementBlock | statement);
 
 // Atomic statements
 jumpLocation      : GOTO ID;
@@ -37,16 +42,23 @@ endStory          : END_STORY;
 print             : STRING (CONTINUE_SIGN | REPLACE_SIGN)?;
 untriggerEvent    : UNTRIGGER;
 assignment        : ID ASSIGN expression;
+loadGame          : LOAD;
+saveGame          : SAVE;
+consumeItem       : CONSUME;
+equipItem         : EQUIP;
+unequipItem       : UNEQUIP;
+getItem           : GET_ITEM ID;
 
 // Value expressions
-expression        : boolExpression | intExpression | otherExpression | codeInjectionExpr;
+expression        : implicitTypedExpr | boolExpression | intExpression | otherExpression | codeInjectionExpr;
 
-intExpression     : intExpressionU | intExpressionB;
-intExpressionU    : INT | ((PLUS | MINUS) (intExpression | implicitTypedExpr)) | (PAREN_LEFT intExpression PAREN_RIGHT);
+intExpression     : intExpressionB | intExpressionU;
+intExpressionU    : INT | ((PLUS | MINUS) (intExpression | implicitTypedExpr)) | (PAREN_LEFT intExpression PAREN_RIGHT) |
+                    builtinMax;
 intExpressionB    : ((intExpressionU | implicitTypedExpr) (PLUS | MINUS | MULT | DIV | MOD) (intExpressionU | implicitTypedExpr));
 
 boolExpression    : boolExpressionU | boolExpressionB;
-boolExpressionU   : BOOL | implicitTypedExpr | (NOT boolExpression);
+boolExpressionU   : BOOL | implicitTypedExpr | (NOT boolExpression) | afterEvent | hasItem;
 
 boolExpressionB   : boolAggregetion | intComparison | otherComparison ;
 boolAggregetion   : boolExpressionU OR boolExpressionU;
@@ -59,6 +71,10 @@ otherExpressionU  : STRING | implicitTypedExpr | INTRODUCTION | HERE;
 
 implicitTypedExpr : ID;
 
+//builtin functions
+builtinMax        : MAX PAREN_LEFT expression COMMA expression PAREN_RIGHT;
+afterEvent        : AFTER PAREN_LEFT ID PAREN_RIGHT;
+hasItem           : HAS_ITEM PAREN_LEFT ID PAREN_RIGHT;
 
 // Code injection
 codeInjection     : CODE_INJECTION;
@@ -86,6 +102,19 @@ CONDITIONS        : 'conditions';
 HERE              : 'here';
 STORY             : 'story';
 UNTRIGGER         : 'untrigger';
+STATS             : 'stats';
+LOAD              : 'load';
+SAVE              : 'save';
+INVENTORY         : 'inventory';
+ITEM              : 'item';
+DESCRIPTION       : 'description';
+CONSUME           : 'consume';
+EQUIP             : 'equip';
+UNEQUIP           : 'unequip';
+AFTER             : 'after';
+HAS_ITEM          : 'has_item';
+GET_ITEM          : 'get_item';
+MAX               : 'max';
 
 // Literals
 STRING            : '"' .*? '"';
@@ -93,7 +122,7 @@ BOOL              : 'true' | 'false';
 INT               : [0-9][0-9]*;
 
 // Identifiers
-ID                : [_]*[a-z][A-Za-z0-9_]* ;
+ID                : [_]*[A-Za-z][A-Za-z0-9_]* ;
 
 // Operators
 CONTINUE_SIGN     : '->';
@@ -116,3 +145,4 @@ DIV               : '/';
 MOD               : '%';
 OR                : '|';
 ASSIGN            : '=';
+COMMA             : ',';

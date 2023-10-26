@@ -2,7 +2,7 @@ import com.example.AdventureBaseListener
 import com.example.AdventureParser
 import com.example.AdventureParser.ExpressionContext
 import com.example.AdventureParser.UnnamedEventContext
-import SymbolTable.ExpressionType
+import com.example.AdventureParser.StatsBlockContext
 
 class KotlinGeneratorListener(
     val output: StringBuilder,
@@ -21,7 +21,44 @@ class KotlinGeneratorListener(
             output.delete(lastNewline, output.length)
             indent()
         } else {
-            throw IllegalStateException("Error in generator: attempted to delete non-empty line")
+            //throw IllegalStateException("Error in generator: attempted to delete non-empty line")
+            indent()
+            realign()
+        }
+    }
+
+    private val statsVariables = mutableListOf<String>()
+    private fun generateSaveStruct() {
+        val code = """
+            var lastSave: SaveStruct = SaveStruct.save(introduction)
+            class SaveStruct(
+            	val location: Location,
+            	val storyState: Stack<String>,
+            	${statsVariables.joinToString(",\n                ") { "val " + it + symbolTable.getSymbolType(it).kotlinName }}
+            ) {
+            	companion object {
+            		fun load() {
+            			clearedStoryEvents.clear()
+            			for (event in lastSave.storyState.reversed()) {
+            				clearedStoryEvents.push(event)
+            			}
+                       	${statsVariables.map { "$it = lastSave.$it" }.joinToString("\n                \t\t")}
+            			throw LocationChangeException(lastSave.location)
+            		}
+
+           			fun save(location: Location):SaveStruct {
+           				return SaveStruct(
+           					location,
+           					clearedStoryEvents,
+           					${statsVariables.joinToString(",\n                \t\t\t")}
+           				)
+           			}
+           		}
+           	}
+        """.trimIndent()
+        code.lines().forEach {
+            output.append(it)
+            indent()
         }
     }
 
@@ -33,6 +70,7 @@ class KotlinGeneratorListener(
         indentLength++
         indent()
         val boilerplate = """
+                // FRAMEWORK CODE
                 interface Location {
                     val here get() = this
                     fun execute()
@@ -106,12 +144,32 @@ class KotlinGeneratorListener(
                         }
                     }
                 }
+                
+                fun max(int1: Int, int2: Int) = int1.coerceAtLeast(int2)
+                
+                fun after(storyEvent: String) = clearedStoryEvents.contains(storyEvent)
+                
+                interface Item {
+                    fun use() { }
+                    fun equip() { }
+                    fun unequip() { }
+                }
+                fun has_item(item: Item) = inventory.contains(item)
+                val inventory = mutableListOf<Item>() 
+                
         """.trimIndent()
         boilerplate.lines().forEach {
             output.append(it)
             indent()
         }
         indent()
+        output.append("// GENERATED FROM SOURCE")
+        indent()
+
+        if (ctx!!.children.filterIsInstance<StatsBlockContext>().isEmpty()) {
+            generateSaveStruct()
+            indent()
+        }
     }
 
     override fun exitAdventure(ctx: AdventureParser.AdventureContext?) {
@@ -126,14 +184,7 @@ class KotlinGeneratorListener(
         super.enterVariable(ctx)
         val varName = ctx?.ID()?.text!!
         val typeOfInitializer = symbolTable.getSymbolType(varName)
-        val typeOfVariable:String = when (typeOfInitializer) {
-            ExpressionType.INT -> ": Int"
-            ExpressionType.STRING -> ": String"
-            ExpressionType.BOOL -> ": Boolean"
-            ExpressionType.LOCATION -> ":Location"
-            ExpressionType.EVENT -> ""
-            ExpressionType.UNDEFINED -> ": Any"
-        }
+        val typeOfVariable:String = typeOfInitializer.kotlinName
         val initializer = ctx.expression()?.text
         output.append("var $varName$typeOfVariable = $initializer")
         indent()
@@ -197,6 +248,7 @@ class KotlinGeneratorListener(
         output.append("fun ${ctx?.ID()?.text}Event(here: Location) {")
         indentLength++
         indent()
+        //todo handle story events
     }
 
     override fun exitNamedEvent(ctx: AdventureParser.NamedEventContext?) {
@@ -209,16 +261,16 @@ class KotlinGeneratorListener(
 
     override fun enterUnnamedEvent(ctx: UnnamedEventContext?) {
         super.enterUnnamedEvent(ctx)
+        unnamedEventCounter++
         output.append("(fun (here: Location) {")
         indentLength++
         indent()
 
         //handle story event where there are no conditions
-        if (ctx!!.EVENT() != null && ctx.conditionsBlock() == null) {
-            output.append("if(clearedStoryEvents.contains(\"@storyEvent$storyEventCounter\")) return")
+        if (ctx!!.STORY() != null && ctx.conditionsBlock() == null) {
+            output.append("if(clearedStoryEvents.contains(\"@unnamedEvent$unnamedEventCounter\")) return")
             indent()
-            output.append("clearedStoryEvents.push(\"@storyEvent$storyEventCounter\")")
-            storyEventCounter++
+            output.append("clearedStoryEvents.push(\"@unnamedEvent$unnamedEventCounter\")")
             indent()
         }
     }
@@ -274,7 +326,7 @@ class KotlinGeneratorListener(
         indent()
     }
 
-    var storyEventCounter = 0
+    var unnamedEventCounter = 0
     override fun enterConditionsBlock(ctx: AdventureParser.ConditionsBlockContext?) {
         super.enterConditionsBlock(ctx)
         output.append("if (")
@@ -283,8 +335,8 @@ class KotlinGeneratorListener(
 
         if (ctx!!.parent is UnnamedEventContext) {
             val theEvent = ctx.parent as UnnamedEventContext
-            if (theEvent.EVENT() != null) {
-                output.append("!clearedStoryEvents.contains(\"@storyEvent$storyEventCounter\") &&")
+            if (theEvent.STORY() != null) {
+                output.append("!clearedStoryEvents.contains(\"@unnamedEvent$unnamedEventCounter\") &&")
                 indent()
             }
         }
@@ -312,9 +364,8 @@ class KotlinGeneratorListener(
 
         if (ctx!!.parent is UnnamedEventContext) {
             val theEvent = ctx.parent as UnnamedEventContext
-            if (theEvent.EVENT() != null) {
-                output.append("clearedStoryEvents.push(\"@storyEvent$storyEventCounter\")")
-                storyEventCounter++
+            if (theEvent.STORY() != null) {
+                output.append("clearedStoryEvents.push(\"@unnamedEvent$unnamedEventCounter\")")
                 indent()
             }
         }
@@ -465,6 +516,156 @@ class KotlinGeneratorListener(
 
     override fun exitCodeInjection(ctx: AdventureParser.CodeInjectionContext?) {
         super.exitCodeInjection(ctx)
+        //do nothing
+    }
+
+    override fun enterLoadGame(ctx: AdventureParser.LoadGameContext?) {
+        super.enterLoadGame(ctx)
+        output.append("SaveStruct.load()")
+    }
+
+    override fun exitLoadGame(ctx: AdventureParser.LoadGameContext?) {
+        super.exitLoadGame(ctx)
+        indent()
+    }
+
+    override fun enterSaveGame(ctx: AdventureParser.SaveGameContext?) {
+        super.enterSaveGame(ctx)
+        output.append("SaveStruct.save(here)")
+    }
+
+    override fun exitSaveGame(ctx: AdventureParser.SaveGameContext?) {
+        super.exitSaveGame(ctx)
+        indent()
+    }
+
+    override fun enterStatsBlock(ctx: StatsBlockContext?) {
+        super.enterStatsBlock(ctx)
+        statsVariables.addAll(ctx!!.ID().map { it.text })
+        generateSaveStruct()
+    }
+
+    override fun exitStatsBlock(ctx: StatsBlockContext?) {
+        super.exitStatsBlock(ctx)
+        indent()
+    }
+
+    override fun enterConsumeItem(ctx: AdventureParser.ConsumeItemContext?) {
+        super.enterConsumeItem(ctx)
+        output.append("inventory.remove(this)")
+    }
+
+    override fun exitConsumeItem(ctx: AdventureParser.ConsumeItemContext?) {
+        super.exitConsumeItem(ctx)
+        indent()
+    }
+
+    override fun enterEquipItem(ctx: AdventureParser.EquipItemContext?) {
+        super.enterEquipItem(ctx)
+        output.append(ctx!!.EQUIP().text + "()")
+    }
+
+    override fun exitEquipItem(ctx: AdventureParser.EquipItemContext?) {
+        super.exitEquipItem(ctx)
+        indent()
+    }
+
+    override fun enterUnequipItem(ctx: AdventureParser.UnequipItemContext?) {
+        super.enterUnequipItem(ctx)
+        output.append(ctx!!.UNEQUIP().text + "()")
+    }
+
+    override fun exitUnequipItem(ctx: AdventureParser.UnequipItemContext?) {
+        super.exitUnequipItem(ctx)
+        indent()
+    }
+
+    override fun enterGetItem(ctx: AdventureParser.GetItemContext?) {
+        super.enterGetItem(ctx)
+        output.append("inventory.add(${ctx!!.ID().text})")
+    }
+
+    override fun exitGetItem(ctx: AdventureParser.GetItemContext?) {
+        super.exitGetItem(ctx)
+        indent()
+    }
+
+    override fun enterBuiltinMax(ctx: AdventureParser.BuiltinMaxContext?) {
+        super.enterBuiltinMax(ctx)
+        //do nothing, this is not a statement
+    }
+
+    override fun exitBuiltinMax(ctx: AdventureParser.BuiltinMaxContext?) {
+        super.exitBuiltinMax(ctx)
+        //do nothing, this is not a statement
+    }
+
+    override fun enterAfterEvent(ctx: AdventureParser.AfterEventContext?) {
+        super.enterAfterEvent(ctx)
+        //do nothing, handled by framework
+    }
+
+    override fun exitAfterEvent(ctx: AdventureParser.AfterEventContext?) {
+        super.exitAfterEvent(ctx)
+        //do nothing, handled by framework
+    }
+
+    override fun enterHasItem(ctx: AdventureParser.HasItemContext?) {
+        super.enterHasItem(ctx)
+        //do nothing, handled by framework
+    }
+
+    override fun exitHasItem(ctx: AdventureParser.HasItemContext?) {
+        super.exitHasItem(ctx)
+        //do nothing, handled by framework
+    }
+    override fun enterInventoryBlock(ctx: AdventureParser.InventoryBlockContext?) {
+        super.enterInventoryBlock(ctx)
+        output.append("init {")
+        indentLength++
+        indent()
+        ctx!!.ID().forEach {
+            output.append("inventory.add(${it.text})")
+            indent()
+        }
+    }
+
+    override fun exitInventoryBlock(ctx: AdventureParser.InventoryBlockContext?) {
+        super.exitInventoryBlock(ctx)
+        indentLength--
+        realign()
+        output.append("}//inventory")
+        indent()
+    }
+
+    override fun enterItem(ctx: AdventureParser.ItemContext?) {
+        super.enterItem(ctx)
+        output.append("object ${ctx!!.ID().text} : Item {")
+        indentLength++
+        indent()
+    }
+
+    override fun exitItem(ctx: AdventureParser.ItemContext?) {
+        super.exitItem(ctx)
+        indentLength--
+        realign()
+        output.append("}//item")
+        indent()
+    }
+    override fun enterItemFunction(ctx: AdventureParser.ItemFunctionContext?) {
+        super.enterItemFunction(ctx)
+        val functionName = ctx!!.start.text
+        if (listOf("use", "equip", "unequip").contains(functionName)) {
+            output.append("override ")
+        }
+        output.append("fun $functionName()")
+        if (ctx.statement() != null) {
+            output.append(" = ")
+        }
+    }
+
+    override fun exitItemFunction(ctx: AdventureParser.ItemFunctionContext?) {
+        super.exitItemFunction(ctx)
         //do nothing
     }
 }

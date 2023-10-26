@@ -42,6 +42,9 @@ class VomitListener(val output: StringBuilder) : AdventureBaseListener() {
     }
 
     override fun enterNamedEvent(ctx: AdventureParser.NamedEventContext?) {
+        if (ctx?.STORY() != null) {
+            output.append(ctx.STORY().text + " ")
+        }
         output.append("event ${ctx?.ID()?.text} {")
         indentLength++
         indent()
@@ -233,9 +236,149 @@ class VomitListener(val output: StringBuilder) : AdventureBaseListener() {
         }
     }
 
+    override fun exitCodeInjection(ctx: AdventureParser.CodeInjectionContext?) {
+        //do nothing
+    }
+
     override fun visitTerminal(node: TerminalNode?) {
         if (node?.symbol?.type == AdventureLexer.COMMENT) {
             output.append(node.text)
         }
+    }
+
+    override fun enterStatsBlock(ctx: AdventureParser.StatsBlockContext?) {
+        output.append(ctx!!.STATS().text + " " + ctx.CURLY_LEFT().text)
+        indentLength++
+        indent()
+        ctx.ID().forEach {
+            output.append(it.text)
+            output.append(" ")
+        }
+        indent()
+    }
+    override fun exitStatsBlock(ctx: AdventureParser.StatsBlockContext?) {
+        indentLength--
+        realign()
+        output.append("}//stats")
+        indent()
+    }
+
+    override fun enterInventoryBlock(ctx: AdventureParser.InventoryBlockContext?) {
+        output.append(ctx!!.INVENTORY().text + " " + ctx.CURLY_LEFT().text)
+        indentLength++
+        indent()
+        ctx.ID().forEach {
+            output.append(it.text)
+            indent()
+        }
+    }
+
+    override fun exitInventoryBlock(ctx: AdventureParser.InventoryBlockContext?) {
+        indentLength--
+        realign()
+        output.append("} //inventory")
+        indent()
+    }
+
+    override fun enterItem(ctx: AdventureParser.ItemContext?) {
+        output.append(ctx!!.ITEM().text + " " + ctx.ID().text + " " + ctx.CURLY_LEFT().text)
+        indentLength++
+        indent()
+        output.append(ctx.DESCRIPTION().text + " " + ctx.STRING().text)
+        indent()
+    }
+
+    override fun exitItem(ctx: AdventureParser.ItemContext?) {
+        indentLength--
+        realign()
+        output.append("} //item")
+        indent()
+    }
+
+    override fun enterItemFunction(ctx: AdventureParser.ItemFunctionContext?) {
+        output.append(ctx!!.start.text + " ")
+        //statement | statementBlock should vomit itself
+    }
+
+    override fun exitItemFunction(ctx: AdventureParser.ItemFunctionContext?) {
+        //do nothing
+    }
+
+    override fun enterLoadGame(ctx: AdventureParser.LoadGameContext?) {
+        output.append(ctx?.LOAD()?.text)
+    }
+
+    override fun exitLoadGame(ctx: AdventureParser.LoadGameContext?) {
+        indent()
+    }
+
+    override fun enterSaveGame(ctx: AdventureParser.SaveGameContext?) {
+        output.append(ctx?.SAVE()?.text)
+    }
+
+    override fun exitSaveGame(ctx: AdventureParser.SaveGameContext?) {
+        indent()
+    }
+
+    override fun enterConsumeItem(ctx: AdventureParser.ConsumeItemContext?) {
+        output.append(ctx!!.CONSUME().text)
+    }
+
+    override fun exitConsumeItem(ctx: AdventureParser.ConsumeItemContext?) {
+        indent()
+    }
+
+    override fun enterEquipItem(ctx: AdventureParser.EquipItemContext?) {
+        output.append(ctx!!.EQUIP().text)
+    }
+
+    override fun exitEquipItem(ctx: AdventureParser.EquipItemContext?) {
+        indent()
+    }
+
+    override fun enterUnequipItem(ctx: AdventureParser.UnequipItemContext?) {
+        output.append(ctx!!.UNEQUIP().text)
+    }
+
+    override fun exitUnequipItem(ctx: AdventureParser.UnequipItemContext?) {
+        indent()
+    }
+
+    override fun enterGetItem(ctx: AdventureParser.GetItemContext?) {
+        output.append(ctx!!.GET_ITEM().text + " " + ctx.ID().text)
+    }
+
+    override fun exitGetItem(ctx: AdventureParser.GetItemContext?) {
+        indent()
+    }
+
+    override fun enterBuiltinMax(ctx: AdventureParser.BuiltinMaxContext?) {
+        //do NOT vomit here, parent statement will vomit instead
+        /*output.append(
+            ctx!!.MAX().text + ctx.PAREN_LEFT().text +
+            ctx.expression(0).text + ctx.COMMA().text + " " +
+            ctx.expression(1).text + ctx.PAREN_RIGHT().text
+        )*/
+    }
+
+    override fun exitBuiltinMax(ctx: AdventureParser.BuiltinMaxContext?) {
+        //do nothing, it isn't a statement
+    }
+
+    override fun enterAfterEvent(ctx: AdventureParser.AfterEventContext?) {
+        output.append(ctx!!.AFTER().text + " " + ctx.ID().text)
+    }
+
+    override fun exitAfterEvent(ctx: AdventureParser.AfterEventContext?) {
+        indent()
+    }
+
+    override fun enterHasItem(ctx: AdventureParser.HasItemContext?) {
+        //do NOT vomit here, parent statement will vomit instead
+        //output.append(ctx!!.HAS_ITEM().text + " " + ctx.ID().text)
+    }
+
+    override fun exitHasItem(ctx: AdventureParser.HasItemContext?) {
+        //do nothing, it isn't a statement
     }
 }

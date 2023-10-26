@@ -6,7 +6,16 @@ class SymbolTable {
     fun pop(): MutableMap<String, ExpressionType> = symbolTable.pop()
     fun push(): MutableMap<String, ExpressionType> = symbolTable.push(mutableMapOf())
     enum class ExpressionType {
-        INT, STRING, BOOL, LOCATION, EVENT, UNDEFINED
+        INT, STRING, BOOL, LOCATION, EVENT, ITEM, UNDEFINED;
+        val kotlinName get() = when (this) {
+            ExpressionType.INT -> ": Int"
+            ExpressionType.STRING -> ": String"
+            ExpressionType.BOOL -> ": Boolean"
+            ExpressionType.LOCATION -> ":Location"
+            ExpressionType.EVENT -> ""
+            ExpressionType.ITEM -> ""
+            ExpressionType.UNDEFINED -> ""//": Any"
+        }
     }
 
     val symbolTable = Stack<MutableMap<String, ExpressionType>>()
