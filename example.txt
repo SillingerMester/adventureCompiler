@@ -18,11 +18,9 @@ inventory {
     stick
 }
 
-@[
-    fun displayStats() {
-        displayText("$charaName hp=$hp/$maxHp gp=$gp", keepGoing=true)
-    }
-]@
+event displayStats {
+    "$charaName hp=$hp/$maxHp gp=$gp" ->
+}
 
 event youDie {
     "You're in pain. Everything goes dark. You die." ->
@@ -88,7 +86,6 @@ item nothing {
     }
     equip {
         replace weapon
-        atk = atk + 2
     }
 }
 
@@ -188,7 +185,7 @@ location ruinsEntranceStairs {
             "You touch the orb. The warmth spreads through you. (all injuries healed)"
             "You're filled with Determination. (savepoint reached)"
             hp = maxHp
-            @[ displayStats() ]@
+            trigger displayStats
             save
         }
         "Go east" {
@@ -288,9 +285,7 @@ story event doggoFight {
     var doggoHP = 30
     var stayedStill = false
     "Doggo: $doggoHP HP"
-    @[
-       displayStats()
-    ]@
+    trigger displayStats
     "You have encountered Doggo."
     choices {
         //FIGHT
@@ -362,9 +357,7 @@ story event doggoFight {
                 trigger healthCheck
             }
             "Doggo: $doggoHP HP"
-            @[
-                displayStats()
-            ]@
+            trigger displayStats
         }
     }
 }

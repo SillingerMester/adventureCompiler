@@ -14,6 +14,7 @@ import kotlin.io.path.Path
 //TODO: semantic check item functions
 //TODO: document replaceItem, input_text
 //TODO: nem lehet specifikus akciókhoz "költeni" item-eket. Ez nem baj, arra valók a közönséges változók! Leírni, hogy ezt mi motiválja!
+//TODO: tényleges build rendszer a generált kódnak
 
 fun main() {
     //return Generated.executeStory()
