@@ -342,4 +342,18 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
         }
     }
 
+    override fun enterReplaceItem(ctx: AdventureParser.ReplaceItemContext?) {
+        val itemDef = findEnclosingIem(ctx!!)
+        val varType = symbolTable.getSymbolType(ctx.ID().text)
+        if (itemDef == null) {
+            printError(ctx.REPLACE_ITEM().symbol, "${ctx.REPLACE_ITEM().text} only works inside item definitions.")
+        }
+        if (varType != ExpressionType.ITEM) {
+            printError(ctx.REPLACE_ITEM().symbol, "${ctx.ID().text} is not an item variable.")
+        }
+    }
+
+    override fun exitReplaceItem(ctx: AdventureParser.ReplaceItemContext?) {
+        //do nothing
+    }
 }

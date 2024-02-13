@@ -394,4 +394,12 @@ class VomitListener(val output: StringBuilder) : AdventureBaseListener() {
         output.append("} //afterEach")
         indent()
     }
+
+    override fun enterReplaceItem(ctx: AdventureParser.ReplaceItemContext?) {
+        output.append(ctx!!.REPLACE_ITEM().text + " " + ctx.ID().text)
+    }
+
+    override fun exitReplaceItem(ctx: AdventureParser.ReplaceItemContext?) {
+        indent()
+    }
 }

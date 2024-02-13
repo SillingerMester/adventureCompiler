@@ -711,4 +711,21 @@ class KotlinGeneratorListener(
         super.exitItemFunction(ctx)
         //do nothing
     }
+
+    override fun enterReplaceItem(ctx: AdventureParser.ReplaceItemContext?) {
+        super.enterReplaceItem(ctx)
+        val varName = ctx!!.ID().text
+        output.append("$varName.unequip()")
+        indent()
+        output.append("inventory.add($varName)")
+        indent()
+        output.append("$varName = this")
+        indent()
+        output.append("inventory.remove(this)")
+    }
+
+    override fun exitReplaceItem(ctx: AdventureParser.ReplaceItemContext?) {
+        super.exitReplaceItem(ctx)
+        indent()
+    }
 }

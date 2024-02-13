@@ -25,14 +25,14 @@ unnamedEvent      : STORY? EVENT CURLY_LEFT conditionsBlock? statement* choicesB
 
 statement         : print | assignment | triggerEvent | branch | jumpLocation | variable  | finishEvent |
                     endStory | untriggerEvent | codeInjection | loadGame | saveGame | consumeItem |
-                    equipItem | unequipItem | getItem;
+                    equipItem | unequipItem | getItem | replaceItem;
 
 branch            : BRANCH CURLY_LEFT conditionsBlock statement* choicesBlock? CURLY_RIGHT;
 conditionsBlock   : CONDITIONS CURLY_LEFT expression* CURLY_RIGHT;
 choicesBlock      : CHOICES CURLY_LEFT choice* afterChoice? CURLY_RIGHT;
 choice            : STRING (statementBlock | statement);
 statementBlock    : CURLY_LEFT statement* choicesBlock? CURLY_RIGHT;
-itemFunction      : (EQUIP | UNEQUIP | ID) (statementBlock | statement);
+itemFunction      : (USE | EQUIP | UNEQUIP | ID) (statementBlock | statement);
 afterChoice       : AFTER_CHOICE CURLY_LEFT statement* CURLY_RIGHT;
 
 // Atomic statements
@@ -49,6 +49,7 @@ consumeItem       : CONSUME;
 equipItem         : EQUIP;
 unequipItem       : UNEQUIP;
 getItem           : GET_ITEM ID;
+replaceItem       : REPLACE_ITEM ID;
 
 // Value expressions
 expression        : implicitTypedExpr | boolExpression | intExpression | otherExpression | codeInjectionExpr;
@@ -117,6 +118,8 @@ HAS_ITEM          : 'has_item';
 GET_ITEM          : 'get_item';
 MAX               : 'max';
 AFTER_CHOICE      : 'afterEach';
+REPLACE_ITEM      : 'replace';
+USE               : 'use';
 
 // Literals
 STRING            : '"' .*? '"';

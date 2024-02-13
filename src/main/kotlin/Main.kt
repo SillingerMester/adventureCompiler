@@ -9,7 +9,14 @@ import java.io.File
 import kotlin.io.path.Path
 
 //TODO: "replace $variable" lecseréli a változóban lévő item-et this-re, és meghívja az unequip-et., elátkozott kard továbbra is lehetelen
-//TODO: "items_menu" és "items_submenu" utasítások fogják a use-t hívogatni
+//TODO: document items_menu, items_submenu
+//TODO: document triggering item functions
+//TODO: move item menus into game engine
+//TODO: define grammar for item menus
+//TODO: semantic check item functions
+//TODO: generate, document replaceItem
+//TODO: define, vomit, analize, generate, document "use item [function]"
+
 fun main() {
     //return Generated.executeStory()
 
