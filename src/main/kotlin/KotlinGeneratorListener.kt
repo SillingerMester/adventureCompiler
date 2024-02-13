@@ -710,6 +710,17 @@ class KotlinGeneratorListener(
         super.exitHasItem(ctx)
         //do nothing, handled by framework
     }
+
+    override fun enterInputText(ctx: AdventureParser.InputTextContext?) {
+        super.enterInputText(ctx)
+        //do nothing, handled by framework
+    }
+
+    override fun exitInputText(ctx: AdventureParser.InputTextContext?) {
+        super.exitInputText(ctx)
+        //do nothing, handled by framework
+    }
+
     override fun enterInventoryBlock(ctx: AdventureParser.InventoryBlockContext?) {
         super.enterInventoryBlock(ctx)
         output.append("init {")
@@ -776,6 +787,16 @@ class KotlinGeneratorListener(
 
     override fun exitReplaceItem(ctx: AdventureParser.ReplaceItemContext?) {
         super.exitReplaceItem(ctx)
+        indent()
+    }
+
+    override fun enterItemsSubmenu(ctx: AdventureParser.ItemsSubmenuContext?) {
+        super.enterItemsSubmenu(ctx)
+        output.append("if( !showItemsSubmenu() ) continue")
+    }
+
+    override fun exitItemsSubmenu(ctx: AdventureParser.ItemsSubmenuContext?) {
+        super.exitItemsSubmenu(ctx)
         indent()
     }
 }

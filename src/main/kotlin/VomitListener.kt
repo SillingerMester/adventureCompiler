@@ -402,4 +402,18 @@ class VomitListener(val output: StringBuilder) : AdventureBaseListener() {
     override fun exitReplaceItem(ctx: AdventureParser.ReplaceItemContext?) {
         indent()
     }
+
+    override fun enterItemsSubmenu(ctx: AdventureParser.ItemsSubmenuContext?) {
+        output.append(ctx!!.ITEMS_SUBMENU().text)
+    }
+
+    override fun exitItemsSubmenu(ctx: AdventureParser.ItemsSubmenuContext?) {
+        indent()
+    }
+    override fun enterInputText(ctx: AdventureParser.InputTextContext?) {
+        //do nothing, this isn't a statement
+    }
+    override fun exitInputText(ctx: AdventureParser.InputTextContext?) {
+        //do nothing, this isn't a statement
+    }
 }

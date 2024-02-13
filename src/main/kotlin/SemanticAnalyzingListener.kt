@@ -369,4 +369,12 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     override fun exitReplaceItem(ctx: AdventureParser.ReplaceItemContext?) {
         //do nothing
     }
+
+    override fun enterItemsSubmenu(ctx: AdventureParser.ItemsSubmenuContext?) {
+        //do nothing
+    }
+
+    override fun exitItemsSubmenu(ctx: AdventureParser.ItemsSubmenuContext?) {
+        //do nothing
+    }
 }

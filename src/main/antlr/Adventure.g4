@@ -30,7 +30,7 @@ statement         : print | assignment | triggerEvent | branch | jumpLocation | 
 branch            : BRANCH CURLY_LEFT conditionsBlock statement* choicesBlock? CURLY_RIGHT;
 conditionsBlock   : CONDITIONS CURLY_LEFT expression* CURLY_RIGHT;
 choicesBlock      : CHOICES CURLY_LEFT choice* afterChoice? CURLY_RIGHT;
-choice            : STRING (statementBlock | statement);
+choice            : STRING (statementBlock | statement | itemsSubmenu);
 statementBlock    : CURLY_LEFT statement* choicesBlock? CURLY_RIGHT;
 itemFunction      : (USE | EQUIP | UNEQUIP | ID) (statementBlock | statement);
 afterChoice       : AFTER_CHOICE CURLY_LEFT statement* CURLY_RIGHT;
@@ -50,6 +50,7 @@ equipItem         : EQUIP;
 unequipItem       : UNEQUIP;
 getItem           : GET_ITEM ID;
 replaceItem       : REPLACE_ITEM ID;
+itemsSubmenu      : ITEMS_SUBMENU;
 
 // Value expressions
 expression        : implicitTypedExpr | boolExpression | intExpression | otherExpression | codeInjectionExpr;
@@ -122,6 +123,7 @@ AFTER_CHOICE      : 'afterEach';
 REPLACE_ITEM      : 'replace';
 USE               : 'use';
 INPUT_TEXT        : 'input_text';
+ITEMS_SUBMENU     : 'items_submenu';
 
 // Literals
 STRING            : '"' .*? '"';

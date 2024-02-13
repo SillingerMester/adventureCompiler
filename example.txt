@@ -335,9 +335,7 @@ story event doggoFight {
         }
 
         //ITEM
-        "Item" {
-            @[showItemsMenu()]@
-        }
+        "Item" items_submenu
 
         //MERCY
         "Spare" {
