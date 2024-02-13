@@ -10,7 +10,6 @@ import kotlin.io.path.Path
 
 //TODO: document items_menu, items_submenu
 //TODO: document triggering item functions
-//TODO: move item menus into game engine
 //TODO: define grammar for item menus
 //TODO: semantic check item functions
 //TODO: document replaceItem, input_text

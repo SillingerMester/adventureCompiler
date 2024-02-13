@@ -165,6 +165,55 @@ class KotlinGeneratorListener(
                 fun has_item(item: Item) = inventory.contains(item)
                 val inventory = mutableListOf<Item>() 
                 
+                fun showItemsMenu() {
+                    while (true) {
+                        val itemMap = (0..<inventory.size).associateWith { inventory[it] }
+                        println("Choose an action and an item, such as: info 15")
+                        println("Available actions: use, info, drop, exit")
+                        println("Your items:")
+                        itemMap.forEach {
+                            println("${'$'}{it.key} ${'$'}{it.value::class.simpleName}")
+                        }
+                        print("Your choice : ")
+                        try {
+                            val choice = readln().split(' ')
+                            when (choice[0]) {
+                                "exit" -> return
+                                "use" -> itemMap[choice[1].toInt()]!!.use()
+                                "info" -> println(itemMap[choice[1].toInt()]!!.description)
+                                "drop" -> {
+                                    val item = itemMap[choice[1].toInt()]!!
+                                    inventory.remove(item)
+                                    println("You dropped the ${'$'}{item::class.simpleName}")
+                                }
+                            }
+                        } catch (_: Exception) {
+                            println("No such choice exists")
+                        }
+                    }
+                }
+                fun showItemsSubmenu() : Boolean {
+                    val itemMap = (0..<inventory.size).associateWith { inventory[it] }
+                    println("Your items:")
+                    itemMap.forEach {
+                        println("${'$'}{it.key} ${'$'}{it.value::class.simpleName}")
+                    }
+                    while (true) {
+                        try {
+                            println("Choose an item to use (-1 to quit): ")
+                            val choice = readln().toInt()
+                            if (choice != -1) {
+                                itemMap[choice]!!.use()
+                                return true
+                            } else {
+                                return false
+                            }
+                        } catch (_: Exception) {
+                            println("No such choice exists")
+                        }
+                    }
+                }
+                
                 fun allTrue(vararg args:Boolean):Boolean = args.all { it }
                 fun input_text(message: String):String { print(message) ; return readln() }
                 
