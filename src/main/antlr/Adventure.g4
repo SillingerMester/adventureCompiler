@@ -29,10 +29,11 @@ statement         : print | assignment | triggerEvent | branch | jumpLocation | 
 
 branch            : BRANCH CURLY_LEFT conditionsBlock statement* choicesBlock? CURLY_RIGHT;
 conditionsBlock   : CONDITIONS CURLY_LEFT expression* CURLY_RIGHT;
-choicesBlock      : CHOICES CURLY_LEFT choice* CURLY_RIGHT;
+choicesBlock      : CHOICES CURLY_LEFT choice* afterChoice? CURLY_RIGHT;
 choice            : STRING (statementBlock | statement);
 statementBlock    : CURLY_LEFT statement* choicesBlock? CURLY_RIGHT;
-itemFunction     : (EQUIP | UNEQUIP | ID) (statementBlock | statement);
+itemFunction      : (EQUIP | UNEQUIP | ID) (statementBlock | statement);
+afterChoice       : AFTER_CHOICE CURLY_LEFT statement* CURLY_RIGHT;
 
 // Atomic statements
 jumpLocation      : GOTO ID;
@@ -115,6 +116,7 @@ AFTER             : 'after';
 HAS_ITEM          : 'has_item';
 GET_ITEM          : 'get_item';
 MAX               : 'max';
+AFTER_CHOICE      : 'afterEach';
 
 // Literals
 STRING            : '"' .*? '"';

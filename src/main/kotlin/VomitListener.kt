@@ -381,4 +381,17 @@ class VomitListener(val output: StringBuilder) : AdventureBaseListener() {
     override fun exitHasItem(ctx: AdventureParser.HasItemContext?) {
         //do nothing, it isn't a statement
     }
+
+    override fun enterAfterChoice(ctx: AdventureParser.AfterChoiceContext?) {
+        output.append(ctx!!.AFTER_CHOICE().text + " " + ctx.CURLY_LEFT().text)
+        indentLength++
+        indent()
+    }
+
+    override fun exitAfterChoice(ctx: AdventureParser.AfterChoiceContext?) {
+        indentLength--
+        realign()
+        output.append("} //afterEach")
+        indent()
+    }
 }

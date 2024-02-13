@@ -8,7 +8,8 @@ import org.antlr.v4.runtime.tree.TerminalNode
 import java.io.File
 import kotlin.io.path.Path
 
-
+//TODO: "replace $variable" lecseréli a változóban lévő item-et this-re, és meghívja az unequip-et., elátkozott kard továbbra is lehetelen
+//TODO: "items_menu" és "items_submenu" utasítások fogják a use-t hívogatni
 fun main() {
     //return Generated.executeStory()
 

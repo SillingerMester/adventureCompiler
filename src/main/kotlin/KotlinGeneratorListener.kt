@@ -33,6 +33,7 @@ class KotlinGeneratorListener(
             class SaveStruct(
             	val location: Location,
             	val storyState: Stack<String>,
+                val inventory: List<Item>,
             	${statsVariables.joinToString(",\n                ") { "val " + it + symbolTable.getSymbolType(it).kotlinName }}
             ) {
             	companion object {
@@ -41,6 +42,8 @@ class KotlinGeneratorListener(
             			for (event in lastSave.storyState.reversed()) {
             				clearedStoryEvents.push(event)
             			}
+                        inventory.clear()
+                        inventory.addAll(lastSave.inventory)
                        	${statsVariables.map { "$it = lastSave.$it" }.joinToString("\n                \t\t")}
             			throw LocationChangeException(lastSave.location)
             		}
@@ -48,7 +51,8 @@ class KotlinGeneratorListener(
            			fun save(location: Location):SaveStruct {
            				return SaveStruct(
            					location,
-           					clearedStoryEvents,
+           					clearedStoryEvents, //TODO: shallow copy instead of reference-passing. Beware of object order.
+                            inventory.toMutableList(),
            					${statsVariables.joinToString(",\n                \t\t\t")}
            				)
            			}
@@ -410,16 +414,34 @@ class KotlinGeneratorListener(
 
     override fun exitChoicesBlock(ctx: AdventureParser.ChoicesBlockContext?) {
         super.exitChoicesBlock(ctx)
-        output.append("else -> {") ; indentLength++
-        indent() ; output.append("println(\">>>No such choice exists\")"); indentLength--
-        indent() ; output.append("}//else") //else
+        if (ctx?.afterChoice() == null)
+        {
+            output.append("else -> {"); indentLength++
+            indent(); output.append("println(\">>>No such choice exists\")"); indentLength--
+            indent(); output.append("}//else") //else
+            indentLength--
+            indent(); output.append("}//when") //when
+            indent()
+        }
         indentLength--
-        indent() ; output.append("}//when") //when
+        realign()
+        output.append("}//while") //while
+        indent()
+    }
+    override fun enterAfterChoice(ctx: AdventureParser.AfterChoiceContext?) {
+        super.enterAfterChoice(ctx)
+        output.append("else -> {"); indentLength++
+        indent(); output.append("println(\">>>No such choice exists\")"); indentLength--
+        indent(); output.append("}//else") //else
         indentLength--
-        indent() ; output.append("}//while") //while
+        indent(); output.append("}//when") //when
         indent()
     }
 
+    override fun exitAfterChoice(ctx: AdventureParser.AfterChoiceContext?) {
+        super.exitAfterChoice(ctx)
+        //do nothing
+    }
     override fun enterChoice(ctx: AdventureParser.ChoiceContext?) {
         super.enterChoice(ctx)
         output.append("${ctx?.STRING()} -> ")
@@ -515,7 +537,7 @@ class KotlinGeneratorListener(
 
     override fun enterCodeInjection(ctx: AdventureParser.CodeInjectionContext?) {
         super.enterCodeInjection(ctx)
-        val injectedCode = ctx!!.CODE_INJECTION().text.drop(2).dropLast(2).trim()
+        val injectedCode = ctx!!.CODE_INJECTION().text.drop(2).dropLast(2).trimIndent()
         if (injectedCode.contains('\r') || injectedCode.contains('\n')) {
             val lines = injectedCode.lines()
             lines.forEach {
