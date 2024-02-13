@@ -31,33 +31,33 @@ class KotlinGeneratorListener(
         val code = """
             var lastSave: SaveStruct = SaveStruct.save(introduction)
             class SaveStruct(
-            	val location: Location,
-            	val storyState: Stack<String>,
+                val location: Location,
+                val storyState: Stack<String>,
                 val inventory: List<Item>,
-            	${statsVariables.joinToString(",\n                ") { "val " + it + symbolTable.getSymbolType(it).kotlinName }}
+                ${statsVariables.joinToString(",\n                ") { "val " + it + symbolTable.getSymbolType(it).kotlinName }}
             ) {
-            	companion object {
-            		fun load() {
-            			clearedStoryEvents.clear()
-            			for (event in lastSave.storyState.reversed()) {
-            				clearedStoryEvents.push(event)
-            			}
+                companion object {
+                    fun load() {
+                        clearedStoryEvents.clear()
+                        for (event in lastSave.storyState.reversed()) {
+                            clearedStoryEvents.push(event)
+                        }
                         inventory.clear()
                         inventory.addAll(lastSave.inventory)
-                       	${statsVariables.map { "$it = lastSave.$it" }.joinToString("\n                \t\t")}
-            			throw LocationChangeException(lastSave.location)
-            		}
+                        ${statsVariables.map { "$it = lastSave.$it" }.joinToString("\n                \t\t")}
+                        throw LocationChangeException(lastSave.location)
+                    }
 
-           			fun save(location: Location):SaveStruct {
-           				return SaveStruct(
-           					location,
-           					clearedStoryEvents, //TODO: shallow copy instead of reference-passing. Beware of object order.
+                    fun save(location: Location):SaveStruct {
+                        return SaveStruct(
+                            location,
+                            clearedStoryEvents, //TODO: shallow copy instead of reference-passing. Beware of object order.
                             inventory.toMutableList(),
-           					${statsVariables.joinToString(",\n                \t\t\t")}
-           				)
-           			}
-           		}
-           	}
+                            ${statsVariables.joinToString(",\n                \t\t\t")}
+                        )
+                    }
+                }
+            }
         """.trimIndent()
         code.lines().forEach {
             output.append(it)
