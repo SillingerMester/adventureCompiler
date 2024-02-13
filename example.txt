@@ -20,12 +20,12 @@ inventory {
 
 @[
     fun displayStats() {
-        displayText("$charaName hp=$hp/$maxHp gp=$gp")
+        displayText("$charaName hp=$hp/$maxHp gp=$gp", keepGoing=true)
     }
 ]@
 
 event youDie {
-    "You're in pain. Everything goes dark. You die."
+    "You're in pain. Everything goes dark. You die." ->
     "..."
     "Or do you?"
     load
@@ -51,7 +51,7 @@ event levelUpCheck {
 item monsterCandy {
     description "Monster candy: Heals 5 hp"
     use {
-        "You ate the monster candy"
+        "You ate the monster candy" ->
         hp = max(maxHp, hp + 5)
         consume
         branch {
@@ -105,14 +105,14 @@ event itemsSubmenu {
     branch {
         conditions { fightMode }
         @[
-			val itemMap = (0..<inventory.size).associateWith { inventory[it] }
-			println("Choose an action and an item, such as: info 15")
-			println("Available actions: use, info, drop, exit")
-			println("Your items:")
-			itemMap.forEach {
-				println("${it.key} ${it.value::class.simpleName}")
-			}
 			while (true) {
+			    val itemMap = (0..<inventory.size).associateWith { inventory[it] }
+			    println("Choose an action and an item, such as: info 15")
+    			println("Available actions: use, info, drop, exit")
+	    		println("Your items:")
+		    	itemMap.forEach {
+			    	println("${it.key} ${it.value::class.simpleName}")
+			    }
 				print("Your choice : ")
 				try {
 					val choice = readln().split(' ')
@@ -137,7 +137,7 @@ event itemsSubmenu {
 
 introduction {
     "You climbed a mountain that is famous for making people disappear. In hindsight, that might have been a bad idea."
-    "You stumbled and fell into a hole. It was quite a fall..."
+    "You stumbled and fell into a hole. It was quite a fall..." ->
     "You wake up between flowers and moss. Somehow you're alright."
     branch {
         conditions {
@@ -177,11 +177,12 @@ location ruinsEntranceFlowey {
     // Events can happen in locations. This in an inline (unnamed) event.
     story event {
         "There's a flower up ahead. It seems to have a... face?" ->
-        "You can't cross a room without approaching it. What do you do?"
+        "You can't cross a room without approaching it. What do you do?" ->
         // Events can present choices.
         choices {
             "Go back" {
                 untrigger
+                "You decide to leave"
                 goto ruinsEntrance
             }
             // After an event terminates, execution continues normally.
@@ -208,6 +209,7 @@ event floweyIntro {
         }
         floweyRemembers = true
         "He offers you a tutorial (you can't refuse)"
+        "$asciiArtFlowey"
         trigger floweyFirstFight
         finish  // Terminate innermost event.
     }
@@ -235,9 +237,6 @@ location ruinsEntranceStairs {
         "Go east" {
             "Your adventure finally begins." ->
             goto fightTestRoom
-            //"What a shame I didn't implement it." ->
-            //"So, ...uuuh... YOU WIN!"
-            //end //Terminate the story
         }
     }
 }
@@ -279,6 +278,7 @@ event floweyFirstFight {
                     choices {
                         "Dodge!" {
                             "Floweys voice deepens. He grins maliciously."
+                            "$asciiArtFloweyEvil"
                             "Flowey: You know what's really going on here, don't you? You just wanted to see me suffer."
                             trigger torielSavesYouFromFlowey
                             finish // Jump out of choices by terminating the event.
@@ -308,6 +308,7 @@ event torielSavesYouFromFlowey {
     "..."
     "Suddenly, the bullets disappear! Flowey looks confused. Before he can even react, a fireball hits him!"
     "Flowey's hurt. He runs away!"
+    "$asciiArtToriel"
     "Youe're saved by a... goat person?"
     "She calls herself Toriel, and this place is mostly hers. Lore dump time...."
     "This place is called the underground, home of monsters. Currently, you're the only human here." ->
@@ -317,6 +318,7 @@ event torielSavesYouFromFlowey {
 
 event floweyTrickedYou {
     "You touch the orbs. They hurt! You've sustained damage."
+    "$asciiArtFloweyEvil"
     "Flowey: You IDIOT. In this world, it's KILL OR BE KILLED!"
     "Flowey: Why would ANYONE pass up an opportunity like this?"
     "Flowey: DIE!!" ->
@@ -325,10 +327,14 @@ event floweyTrickedYou {
 }
 
 story event doggoFight {
-    "You have encountered Doggo."
     var stayStill = 3
     var doggoHP = 30
     var stayedStill = false
+    "Doggo: $doggoHP HP"
+    @[
+       displayStats()
+    ]@
+    "You have encountered Doggo."
     choices {
         //FIGHT
         "Fight Doggo" {
@@ -388,11 +394,7 @@ story event doggoFight {
         }
 
         //monster's turn
-        "beforeEachTurn" {
-            //display stats
-            //maybe some ASCII art
-        }
-        "afterEachTurn" { //will only execute if choice returned normally
+        afterEach { //will only execute if choice returned normally
             branch {
                 conditions { stayedStill }
                 stayStill = stayStill - 1
@@ -404,6 +406,10 @@ story event doggoFight {
                 "Received 5 damage"
                 trigger healthCheck
             }
+            "Doggo: $doggoHP HP"
+            @[
+                displayStats()
+            ]@
         }
     }
 }
