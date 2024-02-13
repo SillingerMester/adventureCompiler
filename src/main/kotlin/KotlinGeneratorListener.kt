@@ -67,7 +67,10 @@ class KotlinGeneratorListener(
 
     override fun enterAdventure(ctx: AdventureParser.AdventureContext?) {
         super.enterAdventure(ctx)
-        output.append("import java.util.Stack\n")
+        output.append("@file:Suppress(\"NAME_SHADOWING\", \"REDUNDANT_ANONYMOUS_FUNCTION\", \"ClassName\", \"RedundantLambdaOrAnonymousFunction\", \"CanBeVal\", \"RedundantExplicitType\", \"RemoveSingleExpressionStringTemplate\", \"UNUSED_PARAMETER\", \"ReplaceWithOperatorAssignment\", \"MemberVisibilityCanBePrivate\", \"SpellCheckingInspection\", \"UNUSED_ANONYMOUS_PARAMETER\", \"MayBeConstant\")\n")
+        indent()
+        output.append("import java.util.Stack")
+        indent()
         indent()
         output.append("object Generated {")
         indentLength++
@@ -124,6 +127,7 @@ class KotlinGeneratorListener(
                     }
                 }
                 
+                @Suppress("unused")
                 fun executeStory() {
                     var here : Location = introduction
                     while (true) {
