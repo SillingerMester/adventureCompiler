@@ -155,7 +155,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
 
     override fun enterUntriggerEvent(ctx: AdventureParser.UntriggerEventContext?) {
         val theEvent = findEnclosingEvent(ctx!!)
-        if (theEvent == null || theEvent !is AdventureParser.UnnamedEventContext || theEvent.STORY() == null) {
+        if (theEvent == null || !(theEvent is AdventureParser.UnnamedEventContext && theEvent.STORY() != null || theEvent is AdventureParser.NamedEventContext && theEvent.STORY() != null)) {
             printWarning(ctx.start, "${ctx.UNTRIGGER()} is not inside a story event. Are you sure?")
         }
     }
