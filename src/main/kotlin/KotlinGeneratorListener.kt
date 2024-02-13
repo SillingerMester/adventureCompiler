@@ -161,6 +161,8 @@ class KotlinGeneratorListener(
                 fun has_item(item: Item) = inventory.contains(item)
                 val inventory = mutableListOf<Item>() 
                 
+                fun allTrue(vararg args:Boolean):Boolean = args.all { it }
+                
         """.trimIndent()
         boilerplate.lines().forEach {
             output.append(it)
@@ -347,36 +349,35 @@ class KotlinGeneratorListener(
     var unnamedEventCounter = 0
     override fun enterConditionsBlock(ctx: AdventureParser.ConditionsBlockContext?) {
         super.enterConditionsBlock(ctx)
-        output.append("if (")
+        output.append("if (allTrue(")
         indentLength++
         indent()
 
         if (ctx!!.parent is UnnamedEventContext) {
             val theEvent = ctx.parent as UnnamedEventContext
             if (theEvent.STORY() != null) {
-                output.append("!clearedStoryEvents.contains(\"@unnamedEvent$unnamedEventCounter\") &&")
+                output.append("!clearedStoryEvents.contains(\"@unnamedEvent$unnamedEventCounter\"),")
                 indent()
             }
         }
 
         ctx.children.filterIsInstance<ExpressionContext>().map {
             if (it.text.startsWith("@[") && it.text.endsWith("]@")) {
-                it.text.drop(2).dropLast(2)
+                "(" + it.text.drop(2).dropLast(2) + ")"
             } else {
                 it.text
             }
         }.forEach {
-            output.append("($it) &&")
+            output.append("$it,")
             indent()
         }
-        output.append("true")
-        indentLength--
-        indent()
     }
 
     override fun exitConditionsBlock(ctx: AdventureParser.ConditionsBlockContext?) {
         super.exitConditionsBlock(ctx)
-        output.append(") {")
+        indentLength--
+        realign()
+        output.append(")) {")
         indentLength++
         indent()
 
