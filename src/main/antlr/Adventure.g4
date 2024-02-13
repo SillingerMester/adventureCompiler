@@ -69,7 +69,7 @@ intComparison     : intExpression (LT | LE | EQ | GE | GT | NE) (intExpression |
 otherComparison   : otherExpression (EQ | NE) otherExpression;
 
 otherExpression   : otherExpressionU;
-otherExpressionU  : STRING | implicitTypedExpr | INTRODUCTION | HERE;
+otherExpressionU  : STRING | inputText | implicitTypedExpr | INTRODUCTION | HERE;
 
 implicitTypedExpr : ID;
 
@@ -77,6 +77,7 @@ implicitTypedExpr : ID;
 builtinMax        : MAX PAREN_LEFT expression COMMA expression PAREN_RIGHT;
 afterEvent        : AFTER PAREN_LEFT ID PAREN_RIGHT;
 hasItem           : HAS_ITEM PAREN_LEFT ID PAREN_RIGHT;
+inputText         : INPUT_TEXT PAREN_LEFT STRING PAREN_RIGHT;
 
 // Code injection
 codeInjection     : CODE_INJECTION;
@@ -120,6 +121,7 @@ MAX               : 'max';
 AFTER_CHOICE      : 'afterEach';
 REPLACE_ITEM      : 'replace';
 USE               : 'use';
+INPUT_TEXT        : 'input_text';
 
 // Literals
 STRING            : '"' .*? '"';

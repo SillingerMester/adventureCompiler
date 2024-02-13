@@ -42,7 +42,7 @@ class SymbolTable {
         }
         if (ctx.otherExpression() != null) {
             val actualExpression = ctx.otherExpression().otherExpressionU()
-            if (actualExpression.STRING() != null) {
+            if (actualExpression.STRING() != null || actualExpression.inputText() != null) {
                 return ExpressionType.STRING
             }
             if (actualExpression.HERE() != null || actualExpression.INTRODUCTION() != null) {

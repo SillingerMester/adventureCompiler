@@ -166,6 +166,7 @@ class KotlinGeneratorListener(
                 val inventory = mutableListOf<Item>() 
                 
                 fun allTrue(vararg args:Boolean):Boolean = args.all { it }
+                fun input_text(message: String):String { print(message) ; return readln() }
                 
         """.trimIndent()
         boilerplate.lines().forEach {

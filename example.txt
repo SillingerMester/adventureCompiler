@@ -72,12 +72,8 @@ item stick {
         equip
     }
     equip {
+        replace weapon
         atk = atk + 2
-        //todo do this better
-        @[ weapon.unequip() ]@ //do the unequip action
-        get_item weapon        //place the weapon in the inventory
-        weapon = stick         //use this one as a weapon
-        consume                //remove this one from inventory
     }
     unequip {
         atk = atk - 2
@@ -91,12 +87,8 @@ item nothing {
         equip
     }
     equip {
+        replace weapon
         atk = atk + 2
-        //todo do this better
-        @[ weapon.unequip() ]@ //do the unequip action
-        get_item weapon        //place the weapon in the inventory
-        weapon = nothing       //use this one as a weapon
-        consume                //remove this one from inventory
     }
 }
 
@@ -166,7 +158,7 @@ introduction {
         }
     }
     "This DEFINITELY isn't an UNDERTALE ripoff." ->
-    @[ print("Please name you chara: ") ; charaName = readln() ]@
+    charaName = input_text("Please name you chara: ")
     choices {
         "Begin" goto ruinsEntrance
     }

@@ -222,6 +222,11 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     }
     override fun enterItem(ctx: AdventureParser.ItemContext?) {
         symbolTable.push()
+        ctx!!.itemFunction().filterNot {
+            it.USE() != null || it.EQUIP() != null || it.UNEQUIP() != null
+        }.forEach {
+            symbolTable.peek()[it.ID().text] = ExpressionType.EVENT
+        }
     }
 
     override fun exitItem(ctx: AdventureParser.ItemContext?) {
@@ -237,7 +242,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     override fun enterConsumeItem(ctx: AdventureParser.ConsumeItemContext?) {
         val itemDef = findEnclosingIem(ctx!!)
         if (itemDef == null) {
-            printError(ctx.CONSUME().symbol, "'consume' only works inside item definitions. Did you mean 'use'?")
+            printError(ctx.CONSUME().symbol, "'consume' only works inside item definitions.")
         }
     }
 
@@ -248,7 +253,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     override fun enterEquipItem(ctx: AdventureParser.EquipItemContext?) {
         val itemDef = findEnclosingIem(ctx!!)
         if (itemDef == null) {
-            printError(ctx.EQUIP().symbol, "'equip' only works inside item definitions. Did you mean 'use'?")
+            printError(ctx.EQUIP().symbol, "'equip' only works inside item definitions.")
         }
     }
 
@@ -259,7 +264,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     override fun enterUnequipItem(ctx: AdventureParser.UnequipItemContext?) {
         val itemDef = findEnclosingIem(ctx!!)
         if (itemDef == null) {
-            printError(ctx.UNEQUIP().symbol, "'unequip' only works inside item definitions. Did you mean 'use'?")
+            printError(ctx.UNEQUIP().symbol, "'unequip' only works inside item definitions.")
         }
     }
 
@@ -284,6 +289,14 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     }
 
     override fun exitBuiltinMax(ctx: AdventureParser.BuiltinMaxContext?) {
+        //do nothing
+    }
+
+    override fun enterInputText(ctx: AdventureParser.InputTextContext?) {
+        //do nothing
+    }
+
+    override fun exitInputText(ctx: AdventureParser.InputTextContext?) {
         //do nothing
     }
 
