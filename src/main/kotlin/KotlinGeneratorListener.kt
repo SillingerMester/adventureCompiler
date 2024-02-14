@@ -593,6 +593,8 @@ class KotlinGeneratorListener(
         indent()
         output.append("val choiceMap = mapOf(")
         indentLength++
+        indent()
+        output.append("0 to \"MainMenu\",")
         for (choice in choiceMap) {
             indent() ; output.append("${choice.key} to ${choice.value},")
         }
@@ -604,6 +606,7 @@ class KotlinGeneratorListener(
         indent() ; output.append("print(\">>>Your choice: \")")
         indent() ; output.append("val choiceNum = try { readln().toInt() } catch (_:NumberFormatException) { -1 }")
         indent() ; output.append("when (choiceMap[choiceNum]) {") ; indentLength++
+        indent() ; output.append("\"MainMenu\" -> showMainMenu()")
         indent()
     }
 

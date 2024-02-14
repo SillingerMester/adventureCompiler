@@ -8,11 +8,9 @@ import org.antlr.v4.runtime.tree.TerminalNode
 import java.io.File
 import kotlin.io.path.Path
 
-//TODO: document items_menu, items_submenu
 //TODO: document triggering item functions
-//TODO: define grammar for item menus
 //TODO: semantic check item functions
-//TODO: document replaceItem, input_text
+//TODO: document replaceItem, input_text, items_submenu, MainMenu (és hogy miért szerepel mindenhol)
 //TODO: nem lehet specifikus akciókhoz "költeni" item-eket. Ez nem baj, arra valók a közönséges változók! Leírni, hogy ezt mi motiválja!
 //TODO: tényleges build rendszer a generált kódnak
 
