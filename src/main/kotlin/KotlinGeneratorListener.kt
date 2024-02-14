@@ -28,6 +28,7 @@ class KotlinGeneratorListener(
 
     private val statsVariables = mutableListOf<String>()
     private fun generateSaveStruct() {
+        var inputLinesCnt = 3 //to generate file read logic
         val code = """
             var lastSave: SaveStruct = SaveStruct.save(introduction)
             class SaveStruct(
@@ -36,6 +37,24 @@ class KotlinGeneratorListener(
                 val inventory: List<Item>,
                 ${statsVariables.joinToString(",\n                ") { "val " + it + symbolTable.getSymbolType(it).kotlinName }}
             ) {
+                fun writeToFile(): String {
+                    return location::class.simpleName + "\n" + 
+                        storyState.joinToString(" ") + "\n" +
+                        inventory.joinToString(" ") + "\n" +
+                        ${
+                            statsVariables.map {
+                                return@map when (symbolTable.getSymbolType(it)) {
+                                    SymbolTable.ExpressionType.INT -> it
+                                    SymbolTable.ExpressionType.STRING -> it
+                                    SymbolTable.ExpressionType.BOOL -> it
+                                    SymbolTable.ExpressionType.LOCATION -> "$it::class.simpleName"
+                                    SymbolTable.ExpressionType.ITEM -> "$it::class.simpleName"
+                                    SymbolTable.ExpressionType.EVENT -> TODO()
+                                    SymbolTable.ExpressionType.UNDEFINED -> TODO()
+                                }
+                            }.joinToString(" + \"\\n\" +\n                        ")
+                        }
+                }
                 companion object {
                     fun load() {
                         clearedStoryEvents.clear()
@@ -54,6 +73,40 @@ class KotlinGeneratorListener(
                             clearedStoryEvents, //TODO: shallow copy instead of reference-passing. Beware of object order.
                             inventory.toMutableList(),
                             ${statsVariables.joinToString(",\n                \t\t\t")}
+                        )
+                    }
+                    
+                    val locationsByName: Map<String, Location> = mapOf(${
+                        symbolTable.symbolTable.last()
+                            .filter { it.value == SymbolTable.ExpressionType.LOCATION }
+                            .map { "\"${it.key}\" to ${it.key}," }
+                            .joinToString(" ")
+                    })
+                    val itemsByName: Map<String, Item> = mapOf(${
+                        symbolTable.symbolTable.last()
+                            .filter { it.value == SymbolTable.ExpressionType.ITEM }
+                            .map { "\"${it.key}\" to ${it.key}," }
+                            .joinToString(" ")
+                    })
+                    
+                    fun readFromFile(lines: List<String>): SaveStruct {
+                        return SaveStruct(
+                            locationsByName[lines[0]]!!,
+                            Stack(), //TODO: fix stack issues
+                            lines[2].split(' ').map { itemsByName[it]!! },
+                            ${
+                                statsVariables.map {
+                                    return@map when(symbolTable.getSymbolType(it)) {
+                                        SymbolTable.ExpressionType.INT -> "lines[${inputLinesCnt++}].toInt(),"
+                                        SymbolTable.ExpressionType.STRING -> "lines[${inputLinesCnt++}],"
+                                        SymbolTable.ExpressionType.BOOL -> "lines[${inputLinesCnt++}].toBoolean(),"
+                                        SymbolTable.ExpressionType.LOCATION -> "locationsByName[lines[${inputLinesCnt++}]]!!,"
+                                        SymbolTable.ExpressionType.ITEM -> "itemsByName[lines[${inputLinesCnt++}]]!!,"
+                                        SymbolTable.ExpressionType.EVENT -> TODO()
+                                        SymbolTable.ExpressionType.UNDEFINED -> TODO()
+                                    }
+                                }.joinToString ("\n                            ")
+                            }
                         )
                     }
                 }
