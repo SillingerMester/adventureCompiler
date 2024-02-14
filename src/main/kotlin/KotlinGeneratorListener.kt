@@ -33,7 +33,7 @@ class KotlinGeneratorListener(
             var lastSave: SaveStruct = SaveStruct.save(introduction)
             class SaveStruct(
                 val location: Location,
-                val storyState: Stack<String>,
+                val storyState: List<String>,
                 val inventory: List<Item>,
                 ${statsVariables.joinToString(",\n                ") { "val " + it + symbolTable.getSymbolType(it).kotlinName }}
             ) {
@@ -70,7 +70,7 @@ class KotlinGeneratorListener(
                     fun save(location: Location):SaveStruct {
                         return SaveStruct(
                             location,
-                            clearedStoryEvents, //TODO: shallow copy instead of reference-passing. Beware of object order.
+                            clearedStoryEvents.toMutableList(),
                             inventory.toMutableList(),
                             ${statsVariables.joinToString(",\n                \t\t\t")}
                         )
@@ -92,7 +92,7 @@ class KotlinGeneratorListener(
                     fun readFromFile(lines: List<String>): SaveStruct {
                         return SaveStruct(
                             locationsByName[lines[0]]!!,
-                            Stack(), //TODO: fix stack issues
+                            lines[1].split(' '),
                             lines[2].split(' ').map { itemsByName[it]!! },
                             ${
                                 statsVariables.map {
