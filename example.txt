@@ -1,4 +1,60 @@
 
+event MainMenu {
+    choices {
+        "Back to game" finish
+        "Load save from file" { @[ loadDialog() ]@ }
+        "Write save to file" { @[ saveDialog() ]@ }
+    }
+}
+
+@[
+    fun loadDialog() {
+        println("Files in current directory:")
+        val filesInCurrentDir = File(".").listFiles() ?: emptyArray()
+        filesInCurrentDir.forEach {
+            println(it.name)
+        }
+        while (true) {
+            try {
+                print("File to load (empty to quit): ")
+                val filename = readln()
+                if (filename == "") break
+                if (!filesInCurrentDir.contains(File(filename))) {
+                    print("This file des not exist.")
+                }
+                lastSave = SaveStruct.readFromFile(File(filename).readLines())
+                SaveStruct.load()
+            } catch(_: Exception) {
+                println("Could not load save.")
+            }
+        }
+    }
+    fun saveDialog() {
+        println("Files in current directory:")
+        val filesInCurrentDir = File(".").listFiles() ?: emptyArray()
+        filesInCurrentDir.forEach {
+            println(it.name)
+        }
+        while (true) {
+            try {
+                print("Name of new file (empty to quit): ")
+                val filename = readln()
+                if (filename == "") break
+                if (filesInCurrentDir.contains(File(filename))) {
+                    print("This file already exists. Overwirte? (y/N) ")
+                    if (readln() != "y") {
+                        println("Not saving")
+                        continue
+                    }
+                }
+
+                File(filename).writeText(lastSave.writeToFile())
+            } catch(_: Exception) {
+                println("Could not create save")
+            }
+        }
+    }
+]@
 
 var floweyRemembers = false
 var hp = 20

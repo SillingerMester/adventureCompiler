@@ -124,6 +124,8 @@ class KotlinGeneratorListener(
         indent()
         output.append("import java.util.Stack")
         indent()
+        output.append("import java.io.File")
+        indent()
         indent()
         output.append("object Generated {")
         indentLength++
