@@ -1,13 +1,37 @@
 
-event MainMenu {
-    choices {
-        "Back to game" finish
-        "Load save from file" { @[ loadDialog() ]@ }
-        "Write save to file" { @[ saveDialog() ]@ }
-    }
-}
-
 @[
+    fun showMainMenu() {
+        while (true) {
+            val choiceMap = mapOf(
+                0 to "Quit",
+                1 to "Back to game",
+                2 to "Load save from file",
+                3 to "Write save to file",
+            )
+            println(">>>CHOICES")
+            choiceMap.entries.forEach {
+                println("    " + it.key + ") " + it.value)
+            }
+            print(">>>Your choice: ")
+            val choiceNum = try { readln().toInt() } catch (_:NumberFormatException) { -1 }
+            when (choiceMap[choiceNum]) {
+                "Quit" -> {
+                    print("Are you sure? (y/N)")
+                    if (readln() == "y") end()
+                }
+                "Back to game" -> return
+                "Load save from file" ->  {
+                    loadDialog() 
+                }
+                "Write save to file" ->  {
+                    saveDialog() 
+                }
+                else -> {
+                    println(">>>No such choice exists")
+                }
+            }
+        }
+    }
     fun loadDialog() {
         println("Files in current directory:")
         val filesInCurrentDir = File(".").listFiles() ?: emptyArray()
