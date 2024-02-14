@@ -130,6 +130,7 @@ class KotlinGeneratorListener(
         indent()
         val boilerplate = """
                 // FRAMEWORK CODE
+                //<editor-fold desc="Framework code">
                 interface Location {
                     val here get() = this
                     fun execute()
@@ -270,6 +271,7 @@ class KotlinGeneratorListener(
                 fun allTrue(vararg args:Boolean):Boolean = args.all { it }
                 fun input_text(message: String):String { print(message) ; return readln() }
                 
+                //</editor-fold>
         """.trimIndent()
         boilerplate.lines().forEach {
             output.append(it)
@@ -277,6 +279,8 @@ class KotlinGeneratorListener(
         }
         indent()
         output.append("// GENERATED FROM SOURCE")
+        indent()
+        output.append("//<editor-fold desc=\"Generated from source\">")
         indent()
 
         if (ctx!!.children.filterIsInstance<StatsBlockContext>().isEmpty()) {
@@ -287,6 +291,8 @@ class KotlinGeneratorListener(
 
     override fun exitAdventure(ctx: AdventureParser.AdventureContext?) {
         super.exitAdventure(ctx)
+        output.append("//</editor-fold>")
+        indent()
         indentLength--
         realign()
         output.append("}// adventure end\n")
