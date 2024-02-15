@@ -8,13 +8,13 @@ class SymbolTable {
     enum class ExpressionType {
         INT, STRING, BOOL, LOCATION, EVENT, ITEM, UNDEFINED;
         val kotlinName get() = when (this) {
-            ExpressionType.INT -> ": Int"
-            ExpressionType.STRING -> ": String"
-            ExpressionType.BOOL -> ": Boolean"
-            ExpressionType.LOCATION -> ":Location"
-            ExpressionType.EVENT -> ""
-            ExpressionType.ITEM -> ": Item"
-            ExpressionType.UNDEFINED -> ": Any"
+            INT -> ": Int"
+            STRING -> ": String"
+            BOOL -> ": Boolean"
+            LOCATION -> ":Location"
+            EVENT -> ""
+            ITEM -> ": Item"
+            UNDEFINED -> ": Any"
         }
     }
 

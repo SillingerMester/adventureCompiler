@@ -1,16 +1,9 @@
+import SymbolTable.ExpressionType
 import com.example.AdventureBaseListener
 import com.example.AdventureParser
-import com.example.AdventureParser.AdventureContext
-import com.example.AdventureParser.BoolExpressionBContext
-import com.example.AdventureParser.BoolExpressionUContext
-import com.example.AdventureParser.ExpressionContext
-import com.example.AdventureParser.IntComparisonContext
-import com.example.AdventureParser.IntExpressionUContext
-import com.example.AdventureParser.OtherExpressionUContext
+import com.example.AdventureParser.*
 import org.antlr.v4.runtime.RuleContext
 import org.antlr.v4.runtime.Token
-import java.util.*
-import SymbolTable.ExpressionType
 
 open class SemanticAnalyzingListener : AdventureBaseListener() {
 

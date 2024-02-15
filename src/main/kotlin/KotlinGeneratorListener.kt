@@ -1,8 +1,5 @@
-import com.example.AdventureBaseListener
 import com.example.AdventureParser
-import com.example.AdventureParser.ExpressionContext
-import com.example.AdventureParser.UnnamedEventContext
-import com.example.AdventureParser.StatsBlockContext
+import com.example.AdventureParser.*
 
 class KotlinGeneratorListener(
     val output: StringBuilder,
@@ -49,8 +46,8 @@ class KotlinGeneratorListener(
                                     SymbolTable.ExpressionType.BOOL -> it
                                     SymbolTable.ExpressionType.LOCATION -> "$it::class.simpleName"
                                     SymbolTable.ExpressionType.ITEM -> "$it::class.simpleName"
-                                    SymbolTable.ExpressionType.EVENT -> TODO()
-                                    SymbolTable.ExpressionType.UNDEFINED -> TODO()
+                                    SymbolTable.ExpressionType.EVENT -> "EVENT"
+                                    SymbolTable.ExpressionType.UNDEFINED -> "UNDEFINED"
                                 }
                             }.joinToString(" + \"\\n\" +\n                        ")
                         }
@@ -63,7 +60,7 @@ class KotlinGeneratorListener(
                         }
                         inventory.clear()
                         inventory.addAll(lastSave.inventory)
-                        ${statsVariables.map { "$it = lastSave.$it" }.joinToString("\n                \t\t")}
+                        ${statsVariables.joinToString("\n                \t\t") { "$it = lastSave.$it" }}
                         throw LocationChangeException(lastSave.location)
                     }
 
@@ -102,8 +99,8 @@ class KotlinGeneratorListener(
                                         SymbolTable.ExpressionType.BOOL -> "lines[${inputLinesCnt++}].toBoolean(),"
                                         SymbolTable.ExpressionType.LOCATION -> "locationsByName[lines[${inputLinesCnt++}]]!!,"
                                         SymbolTable.ExpressionType.ITEM -> "itemsByName[lines[${inputLinesCnt++}]]!!,"
-                                        SymbolTable.ExpressionType.EVENT -> TODO()
-                                        SymbolTable.ExpressionType.UNDEFINED -> TODO()
+                                        SymbolTable.ExpressionType.EVENT -> "TODO(\"Event variables not supported!\")"
+                                        SymbolTable.ExpressionType.UNDEFINED -> "TODO(\"Corrupted save file!\")"
                                     }
                                 }.joinToString ("\n                            ")
                             }

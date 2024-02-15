@@ -1,6 +1,5 @@
 import com.example.AdventureBaseListener
 import com.example.AdventureLexer
-import com.example.AdventureListener
 import com.example.AdventureParser
 import org.antlr.v4.runtime.tree.TerminalNode
 
