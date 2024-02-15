@@ -120,7 +120,7 @@ class KotlinGeneratorListener(
 
     override fun enterAdventure(ctx: AdventureParser.AdventureContext?) {
         super.enterAdventure(ctx)
-        output.append("@file:Suppress(\"NAME_SHADOWING\", \"REDUNDANT_ANONYMOUS_FUNCTION\", \"ClassName\", \"RedundantLambdaOrAnonymousFunction\", \"CanBeVal\", \"RedundantExplicitType\", \"RemoveSingleExpressionStringTemplate\", \"UNUSED_PARAMETER\", \"ReplaceWithOperatorAssignment\", \"MemberVisibilityCanBePrivate\", \"SpellCheckingInspection\", \"UNUSED_ANONYMOUS_PARAMETER\", \"MayBeConstant\")\n")
+        output.append("@file:Suppress(\"NAME_SHADOWING\", \"REDUNDANT_ANONYMOUS_FUNCTION\", \"ClassName\", \"FunctionName\", \"RedundantLambdaOrAnonymousFunction\", \"CanBeVal\", \"RedundantExplicitType\", \"RemoveSingleExpressionStringTemplate\", \"UNUSED_PARAMETER\", \"ReplaceWithOperatorAssignment\", \"MemberVisibilityCanBePrivate\", \"SpellCheckingInspection\", \"UNUSED_ANONYMOUS_PARAMETER\", \"MayBeConstant\", \"TrailingComma\",)\n")
         indent()
         output.append("import java.util.Stack")
         indent()
@@ -214,14 +214,14 @@ class KotlinGeneratorListener(
                 
                 interface Item {
                     val description: String
-                    fun use() { }
-                    fun equip() { }
-                    fun unequip() { }
+                    fun use(here: Location) { }
+                    fun equip(here: Location) { }
+                    fun unequip(here: Location) { }
                 }
                 fun has_item(item: Item) = inventory.contains(item)
                 val inventory = mutableListOf<Item>() 
                 
-                fun showItemsMenu() {
+                fun showItemsMenu(here: Location) {
                     while (true) {
                         val itemMap = (0..<inventory.size).associateWith { inventory[it] }
                         println("Choose an action and an item, such as: info 15")
@@ -235,7 +235,7 @@ class KotlinGeneratorListener(
                             val choice = readln().split(' ')
                             when (choice[0]) {
                                 "exit" -> return
-                                "use" -> itemMap[choice[1].toInt()]!!.use()
+                                "use" -> itemMap[choice[1].toInt()]!!.use(here)
                                 "info" -> println(itemMap[choice[1].toInt()]!!.description)
                                 "drop" -> {
                                     val item = itemMap[choice[1].toInt()]!!
@@ -248,7 +248,7 @@ class KotlinGeneratorListener(
                         }
                     }
                 }
-                fun showItemsSubmenu() : Boolean {
+                fun showItemsSubmenu(here: Location) : Boolean {
                     val itemMap = (0..<inventory.size).associateWith { inventory[it] }
                     println("Your items:")
                     itemMap.forEach {
@@ -259,7 +259,7 @@ class KotlinGeneratorListener(
                             println("Choose an item to use (-1 to quit): ")
                             val choice = readln().toInt()
                             if (choice != -1) {
-                                itemMap[choice]!!.use()
+                                itemMap[choice]!!.use(here)
                                 return true
                             } else {
                                 return false
@@ -273,13 +273,14 @@ class KotlinGeneratorListener(
                 fun allTrue(vararg args:Boolean):Boolean = args.all { it }
                 fun input_text(message: String):String { print(message) ; return readln() }
                 
-                fun showMainMenu() {
+                fun showMainMenu(here: Location) {
                     while (true) {
                         val choiceMap = mapOf(
                             0 to "Quit",
                             1 to "Back to game",
-                            2 to "Load save from file",
-                            3 to "Write save to file",
+                            2 to "Items",
+                            3 to "Load save from file",
+                            4 to "Write save to file",
                         )
                         println(">>>CHOICES")
                         choiceMap.entries.forEach {
@@ -293,6 +294,7 @@ class KotlinGeneratorListener(
                                 if (readln() == "y") end()
                             }
                             "Back to game" -> return
+                            "Items" -> showItemsMenu(here)
                             "Load save from file" ->  {
                                 loadDialog() 
                             }
@@ -606,7 +608,7 @@ class KotlinGeneratorListener(
         indent() ; output.append("print(\">>>Your choice: \")")
         indent() ; output.append("val choiceNum = try { readln().toInt() } catch (_:NumberFormatException) { -1 }")
         indent() ; output.append("when (choiceMap[choiceNum]) {") ; indentLength++
-        indent() ; output.append("\"MainMenu\" -> showMainMenu()")
+        indent() ; output.append("\"MainMenu\" -> showMainMenu(here)")
         indent()
     }
 
@@ -796,7 +798,7 @@ class KotlinGeneratorListener(
 
     override fun enterEquipItem(ctx: AdventureParser.EquipItemContext?) {
         super.enterEquipItem(ctx)
-        output.append(ctx!!.EQUIP().text + "()")
+        output.append(ctx!!.EQUIP().text + "(here)")
     }
 
     override fun exitEquipItem(ctx: AdventureParser.EquipItemContext?) {
@@ -806,7 +808,7 @@ class KotlinGeneratorListener(
 
     override fun enterUnequipItem(ctx: AdventureParser.UnequipItemContext?) {
         super.enterUnequipItem(ctx)
-        output.append(ctx!!.UNEQUIP().text + "()")
+        output.append(ctx!!.UNEQUIP().text + "(here)")
     }
 
     override fun exitUnequipItem(ctx: AdventureParser.UnequipItemContext?) {
@@ -905,7 +907,7 @@ class KotlinGeneratorListener(
         if (listOf("use", "equip", "unequip").contains(functionName)) {
             output.append("override ")
         }
-        output.append("fun $functionName()")
+        output.append("fun $functionName(here: Location)")
         if (ctx.statement() != null) {
             output.append(" = ")
         }
@@ -919,7 +921,7 @@ class KotlinGeneratorListener(
     override fun enterReplaceItem(ctx: AdventureParser.ReplaceItemContext?) {
         super.enterReplaceItem(ctx)
         val varName = ctx!!.ID().text
-        output.append("$varName.unequip()")
+        output.append("$varName.unequip(here)")
         indent()
         output.append("inventory.add($varName)")
         indent()
@@ -935,7 +937,7 @@ class KotlinGeneratorListener(
 
     override fun enterItemsSubmenu(ctx: AdventureParser.ItemsSubmenuContext?) {
         super.enterItemsSubmenu(ctx)
-        output.append("if( !showItemsSubmenu() ) continue")
+        output.append("if( !showItemsSubmenu(here) ) continue")
     }
 
     override fun exitItemsSubmenu(ctx: AdventureParser.ItemsSubmenuContext?) {
