@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.9.0"
+    //antlr
     application
 }
 
@@ -22,10 +23,33 @@ sourceSets {
     }
 }
 
-
 tasks.test {
     useJUnitPlatform()
 }
+
+//Gradle refuses to handle the source generation
+//Use the Antlr plugin inside IntelliJ instead
+
+//val antlrGeneratedDir = file("${buildDir}/src/gen/")
+//val antlrGrammar = file("${buildDir}/src/main/antlr/Adventure.g4")
+
+/*
+tasks.withType<AntlrTask> {
+    outputDirectory = antlrGeneratedDir
+    arguments = listOf("-package", "com.example", "-o", antlrGeneratedDir.toString(), antlrGrammar.toString())
+}
+*/
+/*
+tasks.register<AntlrTask>("generateGrammarSource") {
+    outputDirectory = antlrGeneratedDir
+    arguments = listOf("-package", "org.example.generated", "-o", antlrGeneratedDir.toString(), antlrGrammar.toString())
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    dependsOn("generateGrammarSource")
+    source(antlrGeneratedDir)
+}
+*/
 
 kotlin {
     jvmToolchain(8)
