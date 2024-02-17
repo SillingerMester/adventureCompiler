@@ -368,3 +368,43 @@ story event doggoFight {
 event froggitFight {
 
 }
+
+var artifactGone = false
+location artifactRoom {
+    "This room houses a legendary artifact." ->
+    branch {
+        conditions { artifactGone }
+        "The artifact is gone."
+        choices {
+            "Go back" goto artifactRoom
+        }
+    }
+    "Take it?" ->
+    choices {
+        "Take the artifact" {
+            branch {
+                conditions { !has_item(annoyingDog) }
+                get_item annoyingDog
+            }
+            "You are carrying too many dogs."
+        }
+        "Go back" goto artifactRoom
+    }
+}
+item annoyingDog {
+    description "Little white dog. It's fast asleep."
+    use {
+        branch {
+            conditions { here == artifactRoom }
+            consume
+            "You deployed the dog. Oh no!"
+            "The dog absorbs the artifact!"
+            artifactGone = true
+        }
+        branch {
+            conditions { here != artifactRoom }
+            "It keeps snoring"
+        }
+    }
+}
+
