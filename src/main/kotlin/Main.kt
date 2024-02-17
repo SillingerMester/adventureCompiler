@@ -10,12 +10,14 @@ import kotlin.io.path.Path
 
 //TODO: document triggering item functions
 //TODO: semantic check item functions
-//TODO: document replaceItem, input_text, items_submenu, MainMenu (és hogy miért szerepel mindenhol)
+//TODO: document  MainMenu (és hogy miért szerepel mindenhol)
 //TODO: nem lehet specifikus akciókhoz "költeni" item-eket. Ez nem baj, arra valók a közönséges változók! Leírni, hogy ezt mi motiválja!
 //TODO: tényleges build rendszer a generált kódnak
 //TODO: random()
 //TODO: főmenüvel lehet csalni, mert akárhány item akciót egynek számol. megindokolni hogy ezzel miért nem foglalkozok
 //TODO: vagy kikötöm, hogy a főmenüt ne lehessen akárhol megynitni. megéri?
+//TODO: dokumentálni, hogy az after() miatt vannak konstansok az event nevével
+//TODO: dokumentálni az after() warning-ját
 
 fun main() {
     //return Generated.executeStory()

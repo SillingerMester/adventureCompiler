@@ -11,6 +11,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     var warning = false
 
     val symbolTable = SymbolTable()
+    val storyEvents = mutableListOf<String>()
 
     private fun findEnclosingEvent(ctx: RuleContext): RuleContext? {
         var parentCtx: RuleContext = ctx
@@ -99,6 +100,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
                 errorAlreadyDefined(it.ID().symbol)
             } else {
                 symbolTable.peek()[it.ID().text] = ExpressionType.EVENT
+                storyEvents.add(it.ID().text)
             }
         }
         ctx?.children?.filterIsInstance<AdventureParser.ItemContext>()?.forEach {
@@ -225,6 +227,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     override fun exitItem(ctx: AdventureParser.ItemContext?) {
         symbolTable.pop()
     }
+
     override fun enterItemFunction(ctx: AdventureParser.ItemFunctionContext?) {
         symbolTable.push()
     }
@@ -232,6 +235,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     override fun exitItemFunction(ctx: AdventureParser.ItemFunctionContext?) {
         symbolTable.pop()
     }
+
     override fun enterConsumeItem(ctx: AdventureParser.ConsumeItemContext?) {
         val itemDef = findEnclosingIem(ctx!!)
         if (itemDef == null) {
@@ -298,7 +302,9 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
         val type = symbolTable.getSymbolType(event)
         if (type != ExpressionType.EVENT) {
             printError(ctx.ID().symbol, "$event is not an event!")
-            //todo check if event is story event
+        }
+        if (!storyEvents.contains(event)) {
+            printWarning(ctx.ID().symbol, "$event is not a story event, after() will always be false.")
         }
     }
 
