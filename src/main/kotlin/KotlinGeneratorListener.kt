@@ -218,7 +218,8 @@ class KotlinGeneratorListener(
                 fun has_item(item: Item) = inventory.contains(item)
                 val inventory = mutableListOf<Item>() 
                 
-                fun showItemsMenu(here: Location) {
+                fun showItemsMenu(here: Location) : Boolean {
+                    var didSomething = false
                     while (true) {
                         val itemMap = (0..<inventory.size).associateWith { inventory[it] }
                         println("Choose an action and an item, such as: info 15")
@@ -231,13 +232,20 @@ class KotlinGeneratorListener(
                         try {
                             val choice = readln().split(' ')
                             when (choice[0]) {
-                                "exit" -> return
-                                "use" -> itemMap[choice[1].toInt()]!!.use(here)
-                                "info" -> println(itemMap[choice[1].toInt()]!!.description)
+                                "exit" -> return didSomething
+                                "use" -> {
+                                    itemMap[choice[1].toInt()]!!.use(here)
+                                    didSomething = true
+                                }
+                                "info" -> {
+                                    println(itemMap[choice[1].toInt()]!!.description)
+                                    didSomething = true
+                                }
                                 "drop" -> {
                                     val item = itemMap[choice[1].toInt()]!!
                                     inventory.remove(item)
                                     println("You dropped the ${'$'}{item::class.simpleName}")
+                                    didSomething = true
                                 }
                             }
                         } catch (_: Exception) {
@@ -270,7 +278,8 @@ class KotlinGeneratorListener(
                 fun allTrue(vararg args:Boolean):Boolean = args.all { it }
                 fun input_text(message: String):String { print(message) ; return readln() }
                 
-                fun showMainMenu(here: Location) {
+                fun showMainMenu(here: Location) : Boolean {
+                    var didSomething = false
                     while (true) {
                         val choiceMap = mapOf(
                             0 to "Quit",
@@ -290,8 +299,8 @@ class KotlinGeneratorListener(
                                 print("Are you sure? (y/N)")
                                 if (readln() == "y") end()
                             }
-                            "Back to game" -> return
-                            "Items" -> showItemsMenu(here)
+                            "Back to game" -> return didSomething
+                            "Items" -> didSomething = didSomething || showItemsMenu(here)
                             "Load save from file" ->  {
                                 loadDialog() 
                             }
@@ -605,7 +614,7 @@ class KotlinGeneratorListener(
         indent() ; output.append("print(\">>>Your choice: \")")
         indent() ; output.append("val choiceNum = try { readln().toInt() } catch (_:NumberFormatException) { -1 }")
         indent() ; output.append("when (choiceMap[choiceNum]) {") ; indentLength++
-        indent() ; output.append("\"MainMenu\" -> showMainMenu(here)")
+        indent() ; output.append("\"MainMenu\" -> if( !showMainMenu(here) ) continue")
         indent()
     }
 
