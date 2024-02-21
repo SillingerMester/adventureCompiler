@@ -4,6 +4,11 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+/src/main/kotlin/Generated.kt
+/.idea/
+/gradle/
+/src/gen/adventure/
+
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml
@@ -40,16 +45,4 @@ bin/
 
 ### Mac OS ###
 .DS_Store
-/src/main/kotlin/Generated.kt
-/src/gen/com/example/Adventure.interp
-/src/gen/com/example/AdventureVisitor.java
-/src/gen/com/example/AdventureParser.java
-/src/gen/com/example/AdventureListener.java
-/src/gen/com/example/AdventureLexer.java
-/src/gen/com/example/AdventureLexer.tokens
-/src/gen/com/example/AdventureLexer.interp
-/src/gen/com/example/AdventureBaseVisitor.java
-/src/gen/com/example/AdventureBaseListener.java
-/src/gen/com/example/Adventure.tokens
-/.idea/
-/gradle/
+

@@ -36,13 +36,13 @@ tasks.test {
 /*
 tasks.withType<AntlrTask> {
     outputDirectory = antlrGeneratedDir
-    arguments = listOf("-package", "com.example", "-o", antlrGeneratedDir.toString(), antlrGrammar.toString())
+    arguments = listOf("-package", "adventure", "-o", antlrGeneratedDir.toString(), antlrGrammar.toString())
 }
 */
 /*
 tasks.register<AntlrTask>("generateGrammarSource") {
     outputDirectory = antlrGeneratedDir
-    arguments = listOf("-package", "org.example.generated", "-o", antlrGeneratedDir.toString(), antlrGrammar.toString())
+    arguments = listOf("-package", "adventure", "-o", antlrGeneratedDir.toString(), antlrGrammar.toString())
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

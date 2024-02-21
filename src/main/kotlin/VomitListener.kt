@@ -1,6 +1,6 @@
-import com.example.AdventureBaseListener
-import com.example.AdventureLexer
-import com.example.AdventureParser
+import adventure.AdventureBaseListener
+import adventure.AdventureLexer
+import adventure.AdventureParser
 import org.antlr.v4.runtime.tree.TerminalNode
 
 class VomitListener(val output: StringBuilder) : AdventureBaseListener() {

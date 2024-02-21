@@ -1,4 +1,4 @@
-import com.example.AdventureParser
+import adventure.AdventureParser
 import java.util.*
 
 class SymbolTable {

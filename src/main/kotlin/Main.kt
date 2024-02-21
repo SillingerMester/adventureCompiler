@@ -1,5 +1,5 @@
-import com.example.AdventureLexer
-import com.example.AdventureParser
+import adventure.AdventureLexer
+import adventure.AdventureParser
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.ParserRuleContext

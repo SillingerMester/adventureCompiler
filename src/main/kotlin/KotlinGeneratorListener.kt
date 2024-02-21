@@ -1,5 +1,5 @@
-import com.example.AdventureParser
-import com.example.AdventureParser.*
+import adventure.AdventureParser
+import adventure.AdventureParser.*
 
 class KotlinGeneratorListener(
     val output: StringBuilder,

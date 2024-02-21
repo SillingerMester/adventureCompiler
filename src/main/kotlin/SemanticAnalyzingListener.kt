@@ -1,7 +1,7 @@
 import SymbolTable.ExpressionType
-import com.example.AdventureBaseListener
-import com.example.AdventureParser
-import com.example.AdventureParser.*
+import adventure.AdventureBaseListener
+import adventure.AdventureParser
+import adventure.AdventureParser.*
 import org.antlr.v4.runtime.RuleContext
 import org.antlr.v4.runtime.Token
 
