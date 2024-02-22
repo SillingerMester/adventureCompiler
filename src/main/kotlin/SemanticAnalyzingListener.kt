@@ -325,6 +325,10 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
         //do nothing
     }
 
+    override fun enterCodeInjection(ctx: CodeInjectionContext?) {
+        //do nothing
+    }
+
     override fun exitCodeInjection(ctx: AdventureParser.CodeInjectionContext?) {
         //do nothing
     }
@@ -380,5 +384,15 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
 
     override fun visitErrorNode(node: ErrorNode?) {
         error = true
+    }
+
+    override fun enterCodeInjectionExpr(ctx: CodeInjectionExprContext?) {
+        if (ctx!!.parent.parent::class != ConditionsBlockContext::class) {
+            printError(ctx.start, "code injection expressions are illegal when not directly under conditions block")
+        }
+    }
+
+    override fun exitCodeInjectionExpr(ctx: CodeInjectionExprContext?) {
+        //do nothing
     }
 }
