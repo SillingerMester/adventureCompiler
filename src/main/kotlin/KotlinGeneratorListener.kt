@@ -466,9 +466,8 @@ class KotlinGeneratorListener(
         indent()
 
         //handle story events
-        //there is no conditions block here
         //handle story event where there are no conditions
-        if (ctx!!.STORY() != null) {
+        if (ctx!!.STORY() != null && ctx.conditionsBlock() == null) {
             output.append("if(clearedStoryEvents.contains(${ctx.ID().text})) return")
             indent()
             output.append("clearedStoryEvents.push(${ctx.ID().text})")
@@ -478,6 +477,13 @@ class KotlinGeneratorListener(
 
     override fun exitNamedEvent(ctx: AdventureParser.NamedEventContext?) {
         super.exitNamedEvent(ctx)
+        //handle the indent created by conditions block
+        if (ctx?.conditionsBlock() != null) {
+            indentLength--
+            realign()
+            output.append("}")
+            indent()
+        }
         indentLength--
         realign()
         output.append("}//event")

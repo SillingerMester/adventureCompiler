@@ -15,7 +15,7 @@ adventure : (variable | introduction | location | namedEvent | codeInjection | s
 variable           : VAR ID ASSIGN expression;
 introduction       : INTRODUCTION CURLY_LEFT (statement | unnamedEvent)* choicesBlock? CURLY_RIGHT;
 location           : LOCATION ID CURLY_LEFT (statement | unnamedEvent)* choicesBlock? CURLY_RIGHT;
-namedEvent         : STORY? EVENT ID CURLY_LEFT statement* choicesBlock? CURLY_RIGHT;
+namedEvent         : STORY? EVENT ID CURLY_LEFT conditionsBlock? statement* choicesBlock? CURLY_RIGHT;
 statsBlock         : STATS CURLY_LEFT ID* CURLY_RIGHT;
 inventoryBlock     : INVENTORY CURLY_LEFT ID* CURLY_RIGHT;
 item               : ITEM ID CURLY_LEFT DESCRIPTION STRING itemFunction* CURLY_RIGHT;
