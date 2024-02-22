@@ -123,6 +123,8 @@ class KotlinGeneratorListener(
         indent()
         output.append("import java.io.File")
         indent()
+        output.append("import kotlin.random.Random")
+        indent()
         indent()
         output.append("object Generated {")
         indentLength++
@@ -206,6 +208,8 @@ class KotlinGeneratorListener(
                 }
                 
                 fun max(int1: Int, int2: Int) = int1.coerceAtLeast(int2)
+                
+                fun random(ceil: Int): Int = if(ceil < 0) 0 else Random.nextInt(ceil + 1)
                 
                 fun after(storyEvent: String) = clearedStoryEvents.contains(storyEvent)
                 

@@ -57,7 +57,7 @@ expression        : implicitTypedExpr | boolExpression | intExpression | otherEx
 
 intExpression     : intExpressionB | intExpressionU;
 intExpressionU    : INT | ((PLUS | MINUS) (intExpression | implicitTypedExpr)) | (PAREN_LEFT intExpression PAREN_RIGHT) |
-                    builtinMax;
+                    builtinMax | builtinRandom;
 intExpressionB    : ((intExpressionU | implicitTypedExpr) (PLUS | MINUS | MULT | DIV | MOD) (intExpressionU | implicitTypedExpr));
 
 boolExpression    : boolExpressionU | boolExpressionB;
@@ -79,6 +79,7 @@ builtinMax        : MAX PAREN_LEFT expression COMMA expression PAREN_RIGHT;
 afterEvent        : AFTER PAREN_LEFT ID PAREN_RIGHT;
 hasItem           : HAS_ITEM PAREN_LEFT ID PAREN_RIGHT;
 inputText         : INPUT_TEXT PAREN_LEFT STRING PAREN_RIGHT;
+builtinRandom     : RANDOM PAREN_LEFT intExpression PAREN_RIGHT;
 
 // Code injection
 codeInjection     : CODE_INJECTION;
@@ -124,6 +125,7 @@ REPLACE_ITEM      : 'replace';
 USE               : 'use';
 INPUT_TEXT        : 'input_text';
 ITEMS_SUBMENU     : 'items_submenu';
+RANDOM            : 'random';
 
 // Literals
 STRING            : '"' .*? '"';
