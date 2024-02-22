@@ -4,6 +4,7 @@ import adventure.AdventureParser
 import adventure.AdventureParser.*
 import org.antlr.v4.runtime.RuleContext
 import org.antlr.v4.runtime.Token
+import org.antlr.v4.runtime.tree.ErrorNode
 
 open class SemanticAnalyzingListener : AdventureBaseListener() {
 
@@ -375,5 +376,9 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
 
     override fun exitItemsSubmenu(ctx: AdventureParser.ItemsSubmenuContext?) {
         //do nothing
+    }
+
+    override fun visitErrorNode(node: ErrorNode?) {
+        error = true
     }
 }
