@@ -37,7 +37,7 @@ class KotlinGeneratorListener(
                 fun writeToFile(): String {
                     return location::class.simpleName + "\n" + 
                         storyState.joinToString(" ") + "\n" +
-                        inventory.joinToString(" ") + "\n" +
+                        inventory.map { it::class.simpleName }.joinToString(" ") + "\n" +
                         ${
                             statsVariables.map {
                                 return@map when (symbolTable.getSymbolType(it)) {
@@ -89,7 +89,7 @@ class KotlinGeneratorListener(
                     fun readFromFile(lines: List<String>): SaveStruct {
                         return SaveStruct(
                             locationsByName[lines[0]]!!,
-                            lines[1].split(' '),
+                            lines[1].split(' ').filter(String::isNotBlank),
                             lines[2].split(' ').filter(String::isNotBlank).map { itemsByName[it]!! },
                             ${
                                 statsVariables.map {
@@ -265,7 +265,7 @@ class KotlinGeneratorListener(
                     }
                     while (true) {
                         try {
-                            println("Choose an item to use (-1 to quit): ")
+                            print("Choose an item to use (-1 to quit): ")
                             val choice = readln().toInt()
                             if (choice != -1) {
                                 itemMap[choice]!!.use(here)
@@ -340,6 +340,7 @@ class KotlinGeneratorListener(
                             }
                             lastSave = SaveStruct.readFromFile(File(filename).readLines())
                             println("Successfully read save into memory. Use the menu to load it.")
+                            break
                         } catch(_: Exception) {
                             println("Could not load save.")
                         }
@@ -363,8 +364,9 @@ class KotlinGeneratorListener(
                                     continue
                                 }
                             }
-                            
                             File(filename).writeText(lastSave.writeToFile())
+                            println("File saved")
+                            break
                         } catch(_: Exception) {
                             println("Could not create save")
                         }
@@ -419,6 +421,8 @@ class KotlinGeneratorListener(
         output.append("object introduction : Location {")
         indentLength++
         indent()
+        output.append("override fun toString():String = this::class.simpleName ?: \"\"")
+        indent()
         output.append("override fun execute() {")
         indentLength++
         indent()
@@ -442,6 +446,8 @@ class KotlinGeneratorListener(
         super.enterLocation(ctx)
         output.append("object ${ctx?.ID()?.text} : Location {")
         indentLength++
+        indent()
+        output.append("override fun toString():String = this::class.simpleName ?: \"\"")
         indent()
         output.append("override fun execute() {")
         indentLength++
@@ -790,7 +796,7 @@ class KotlinGeneratorListener(
 
     override fun enterSaveGame(ctx: AdventureParser.SaveGameContext?) {
         super.enterSaveGame(ctx)
-        output.append("SaveStruct.save(here)")
+        output.append("lastSave = SaveStruct.save(here)")
     }
 
     override fun exitSaveGame(ctx: AdventureParser.SaveGameContext?) {
@@ -914,6 +920,8 @@ class KotlinGeneratorListener(
         indentLength++
         indent()
         output.append("override val description = " + ctx.STRING())
+        indent()
+        output.append("override fun toString():String = this::class.simpleName ?: \"\"")
         indent()
     }
 
