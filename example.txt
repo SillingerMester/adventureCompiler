@@ -1,8 +1,13 @@
 
-@[
-]@
+// Example game to demonstrate Adventure Script. Story is based on Undertale (by Toby Fox).
 
+
+// Flowey is a meta-narrative character that lives outside normal game mechanics.
+// He remembers us doing certain actions even after loading a previous save.
 var floweyRemembers = false
+
+// Damage is randomized between [0,atk], enemies do the same to you. Weapons give extra atk.
+// There is no armor, and no def stat. Inventory has infinite space.
 var hp = 20
 var maxHp = 20
 var gp = 0
@@ -20,10 +25,13 @@ inventory {
     stick
 }
 
+// We will use this to display stats in fights and save points.
 event displayStats {
-    "$charaName hp=$hp/$maxHp gp=$gp" ->
+    "$charaName LV$lv HP=$hp/$maxHp gp=$gp ATK=$atk" ->
 }
 
+// Can't replicate all of the story, so there's no point giving the "determination" talk.
+// Instead, we'll make it clear that [loading] is part of the narrative.
 event youDie {
     "You're in pain. Everything goes dark. You die." ->
     "..."
@@ -52,7 +60,7 @@ item monsterCandy {
     description "Monster candy: Heals 5 hp"
     use {
         "You ate the monster candy" ->
-        hp = max(maxHp, hp + 5)
+        hp = -max(-maxHp, -hp - 5)
         consume
         branch {
             conditions {
@@ -94,12 +102,16 @@ item nothing {
 introduction {
     "You climbed a mountain that is famous for making people disappear. In hindsight, that might have been a bad idea."
     "You stumbled and fell into a hole. It was quite a fall..." ->
-    "You wake up between flowers and moss. Somehow you're alright."
+    "You wake up between flowers and moss. Somehow you're alright." ->
+    // For meta-narrative reasons the game needs to know whether it is your first time playing.
+    // Normally, the main menu would handle everything.
     branch {
         conditions {
+            // Code injection needed, since we're doing something very unusual.
             @[ lastSave.location != introduction ]@
         }
-        "Hey, there's a save. What do you do?"
+        "Hey, there's a save. What do you do?" ->
+        floweyRemembers = true // If there's a save, we've definitely met Flowey before.
         choices {
             "Continue" load
             "Reset" save
@@ -115,63 +127,64 @@ introduction {
 location ruinsEntrance {
     "You woke up in this room. You can faintly see the sunlight filtering through from above." ->
     "It's impossible to climb back out. There's an exit to the east, leading deeper into the mountain." ->
-    // The parent block cannot have anything after the choices block. The choices block keeps executing until it terminates itself.
     choices {
         "Explore the room" {
             "There's nothing to see except the flower bed. It's made of golden flowers. Looks deliberately planted."
-            // This didn't terminate the block, so the choices are presented again.
         }
         "Progress" {
-            "You step into the next room"
+            "You step into the next room." ->
             goto ruinsEntranceFlowey
         }
     }
 }
 
+// This is the room where we first meet Flowey. He will recognize us even when he shouldn't.
 location ruinsEntranceFlowey {
     "There's one door leading eastward, and one leading westward."
-    // Events can happen in locations. This in an inline (unnamed) event.
+    // A one-time event when we meet Flowey. This is part of the "normal" narrative.
     story event {
         "There's a flower up ahead. It seems to have a... face?" ->
         "You can't cross a room without approaching it. What do you do?" ->
-        // Events can present choices.
         choices {
             "Go back" {
-                untrigger
-                "You decide to leave"
+                untrigger // He is patient. He'll wait until we're ready.
+                "You decide to leave."
                 goto ruinsEntrance
             }
-            // After an event terminates, execution continues normally.
             "Approach" {
                 trigger floweyIntro
-                finish  // Terminate innermost event. (would get stuck otherwise)
+                finish // Exit the event.
             }
-        } // If you get to this line, the choice will execute again.
+        }
     }
+    // After our talk with Flowey, we'll find an otherwise unremarkable room.
+    "The room where you first met Flowey. It is empty now."
     choices {
         "Go east" goto ruinsEntranceStairs
         "Go west" goto ruinsEntrance
     }
 }
 
-// You can define named events. They can be placed in locations or triggered manually.
+// This is when we first meet Flowey. He'll introduce us to the game mechanics, then tries to kill us.
 event floweyIntro {
     "The flower starts talking ?!" ->
-    "It intruduces itself as 'Flowey the flower'"
+    "Flowey: Howdy! I'm Flowey. Flowey the flower."
+    "$asciiArtFlowey" ->
     branch {
-        // The conditions block (if exists) is always the first block.
         conditions {
             !floweyRemembers
         }
-        floweyRemembers = true
-        "He offers you a tutorial (you can't refuse)"
-        "$asciiArtFlowey"
+        floweyRemembers = true // He will remember us the next time,
+        save // ... and we want this information be preserved in the save files
+        @[ lastSave.location = ruinsEntrance ]@ // ... without revealing the trickery.
+        "Flowey: You're new to the Underground, aren' tcha? Golly, you must be so confused."
+        "Flowey: Let me show you how things work here."
         trigger floweyFirstFight
-        finish  // Terminate innermost event.
+        finish  // Terminate the event.
     }
-    "He scolds you for making him introduce himself. Weird. Have you two met before?" ->
-    "He gives you the tutorial anyway."
-    // Events can trigger other events ad-infinitum.
+    "Flowey: Hee hee hee."
+    "Flowey: Why did you make me introduce myself? It's rude to act like you don't know who I am."
+    "Flowey: Someone's gotta teach you proper manners. I guess little old me will have to do." ->
     trigger floweyFirstFight
 }
 
@@ -179,7 +192,7 @@ location ruinsEntranceStairs {
     "There are stairs on the east side, leading up to a door. There's also a door on the west side."
     "There's a you-sized orb in the middle of the room. It shines with golden light, and radiates a pleasant warmth."
     story event {
-        "You catch a glimpse of Toriel as she leaves the room. You can't catch up"
+        "You see a glimpse of Toriel as she leaves the room. You can't catch up."
     }
     choices {
         "Go west" goto ruinsEntranceFlowey
@@ -197,6 +210,7 @@ location ruinsEntranceStairs {
     }
 }
 
+// Didn't want to replicate all of Undertale, so here's a room with enemies.
 location fightTestRoom {
     "This is the fight test room. You will fight here."
     trigger doggoFight
@@ -210,11 +224,14 @@ location fightTestRoom {
     end
 }
 
+// Flowey pretends to helpful, but tries to kill you. The only way to win, is to not trust him.
 event floweyFirstFight {
+    "For a fleeting moment, you feel like a [heart-shaped object] trapped in a [box], [dodging bullets]." ->
+    "Then you realize it's number all the way down. Trippy..."
     "Flowey: Your soul starts out weak, but you can become stronger by gaining LV."
     "Flowey: What does LV stand for? Why, LOVE of course!"
     "Flowey: You want some LOVE, don't you? Don't worry, I'll share some with you!"
-    "Fist-sized translucent white orbs materialize in the air around flowey. He winks at you cutely."
+    "Fist-sized translucent white orbs materialize in the air around Flowey. He winks."
     "Flowey: Down here LOVE is shared through little white... 'friendliness pellets'. Just touch them to absorb." ->
     "The 'friendliness pellets' are getting closer to you. They move slowly. You could dodge them with ease."
     choices {
@@ -222,15 +239,14 @@ event floweyFirstFight {
             "You dodge them with ease. (they disappear after a distance behind you). Flowey looks confused." ->
             "Flowey: Hey, buddy. You missed them."
             "Flowey: Let's try again." ->
-            "The 'friendliness pellets' come again, but with greater speed."
-            // Choices can be presented while handling choices.
+            "The 'friendliness pellets' come again, but with greater speed." ->
             choices {
                 "Dodge!" {
                     "Flowey's face turns into a scowl. He is decidedly unhappy."
                     "Flowey: Is this a joke ?! Are you brain-dead? RUN. INTO. THE." ->
-                    "Flowey: BULLETS!! (oopsie-face)" <- // The <- makes this a vanishing line.
+                    "Flowey: BULLETS!! (oopsie-face)" <- // the text "bullets" is quickly replaced
                     "Friendliness pellets! (innocent smile)" ->
-                    "They come at you again."
+                    "They come at you again." ->
                     choices {
                         "Dodge!" {
                             "Floweys voice deepens. He grins maliciously."
@@ -243,19 +259,19 @@ event floweyFirstFight {
                             trigger floweyTrickedYou
                             finish // Jump out of choices by terminating the event.
                         }
-                    } // If you get to this line, the choice will execute again.
+                    }
                 }
                 "Do not." {
                     trigger floweyTrickedYou
                     finish // Jump out of choices by terminating the event.
                 }
-            } // If you get to this line, the choice will execute again.
+            }
         }
         "Do not." {
             trigger floweyTrickedYou
             finish // Jump out of choices by terminating the event.
         }
-    } // If you get to this line, the choice will execute again.
+    }
 }
 
 event torielSavesYouFromFlowey {
@@ -264,16 +280,15 @@ event torielSavesYouFromFlowey {
     "..."
     "Suddenly, the bullets disappear! Flowey looks confused. Before he can even react, a fireball hits him!"
     "Flowey's hurt. He runs away!"
-    "$asciiArtToriel"
-    "Youe're saved by a... goat person?"
-    "She calls herself Toriel, and this place is mostly hers. Lore dump time...."
-    "This place is called the underground, home of monsters. Currently, you're the only human here." ->
-    "You're in the Ruins area, which Toriel oversees."
+    "$asciiArtToriel" ->
+    "Youe're saved by a... goat person? (she calls herself Toriel)" ->
+    "[Just pretend you understand what's happening. I can't be bothered to replicate all the Undertale dialog]"
     "She gives you direction to her house, then leaves to 'prepare a surprise'. You only have good feelings about this."
 }
 
+// You trusted Flowey. Bad decision.
 event floweyTrickedYou {
-    "You touch the orbs. They hurt! You've sustained damage."
+    "You touch the orbs. They hurt! You've sustained damage." // Not really
     "$asciiArtFloweyEvil"
     "Flowey: You IDIOT. In this world, it's KILL OR BE KILLED!"
     "Flowey: Why would ANYONE pass up an opportunity like this?"
@@ -282,17 +297,21 @@ event floweyTrickedYou {
     trigger youDie
 }
 
+// You fight an anthropomorphic dog monster. To win without killing, stay still for 3 turns.
 story event doggoFight {
     var stayStill = 3
     var doggoHP = 30
     var stayedStill = false
+    var doggoAtk = 5
     "Doggo: $doggoHP HP"
     trigger displayStats
-    "You have encountered Doggo."
+    "You have encountered Doggo." ->
     choices {
         //FIGHT
         "Fight Doggo" {
-            doggoHP = doggoHP - atk
+            var dmg = random(atk)
+            "You dealt $dmg damage." ->
+            doggoHP = doggoHP - dmg
             branch {
                 conditions {
                     doggoHP <= 0
@@ -327,9 +346,6 @@ story event doggoFight {
                 "You want play with Doggo, but can't. If only you had a stick..."
            }
         }
-        "Pet" {
-            //only works if he spared you
-        }
 
         //ITEM
         "Item" items_submenu
@@ -343,6 +359,7 @@ story event doggoFight {
                 "You won. Gained 0 XP and 10 Gold"
                 finish
             }
+            "The fight isn't over yet."
         }
 
         //monster's turn
@@ -350,12 +367,13 @@ story event doggoFight {
             branch {
                 conditions { stayedStill }
                 stayStill = stayStill - 1
-                "You stayed still. Doggo couldn't find you."
+                "You stayed still. Doggo couldn't find you." ->
             }
             branch {
                 conditions { !stayedStill }
-                hp = hp - 5
-                "Received 5 damage"
+                var dmg = random(doggoAtk)
+                hp = hp - dmg
+                "Received $dmg damage." ->
                 trigger healthCheck
             }
             "Doggo: $doggoHP HP"
