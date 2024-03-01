@@ -79,7 +79,7 @@ builtinMax        : MAX PAREN_LEFT expression COMMA expression PAREN_RIGHT;
 afterEvent        : AFTER PAREN_LEFT ID PAREN_RIGHT;
 hasItem           : HAS_ITEM PAREN_LEFT ID PAREN_RIGHT;
 inputText         : INPUT_TEXT PAREN_LEFT STRING PAREN_RIGHT;
-builtinRandom     : RANDOM PAREN_LEFT intExpression PAREN_RIGHT;
+builtinRandom     : RANDOM PAREN_LEFT expression PAREN_RIGHT;
 
 // Code injection
 codeInjection     : CODE_INJECTION;

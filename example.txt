@@ -176,7 +176,7 @@ event floweyIntro {
         }
         floweyRemembers = true // He will remember us the next time,
         save // ... and we want this information be preserved in the save files
-        @[ lastSave.location = ruinsEntrance ]@ // ... without revealing the trickery.
+        @[ lastSave = lastSave.copy(location = ruinsEntrance) ]@ // ... without revealing the trickery.
         "Flowey: You're new to the Underground, aren' tcha? Golly, you must be so confused."
         "Flowey: Let me show you how things work here."
         trigger floweyFirstFight

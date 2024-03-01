@@ -28,7 +28,7 @@ class KotlinGeneratorListener(
         var inputLinesCnt = 3 //to generate file read logic
         val code = """
             var lastSave: SaveStruct = SaveStruct.save(introduction)
-            class SaveStruct(
+            data class SaveStruct(
                 val location: Location,
                 val storyState: List<String>,
                 val inventory: List<Item>,
@@ -90,7 +90,7 @@ class KotlinGeneratorListener(
                         return SaveStruct(
                             locationsByName[lines[0]]!!,
                             lines[1].split(' '),
-                            lines[2].split(' ').map { itemsByName[it]!! },
+                            lines[2].split(' ').filter(String::isNotBlank).map { itemsByName[it]!! },
                             ${
                                 statsVariables.map {
                                     return@map when(symbolTable.getSymbolType(it)) {
@@ -283,6 +283,7 @@ class KotlinGeneratorListener(
                 fun input_text(message: String):String { print(message) ; return readln() }
                 
                 fun showMainMenu(here: Location) : Boolean {
+                    println("Location: ${'$'}{here::class.simpleName}, last save at: ${'$'}{lastSave.location::class.simpleName}")
                     var didSomething = false
                     while (true) {
                         val choiceMap = mapOf(
@@ -291,6 +292,7 @@ class KotlinGeneratorListener(
                             2 to "Items",
                             3 to "Load save from file",
                             4 to "Write save to file",
+                            5 to "Reload previous save (in memory)",
                         )
                         println(">>>CHOICES")
                         choiceMap.entries.forEach {
@@ -311,6 +313,10 @@ class KotlinGeneratorListener(
                             "Write save to file" ->  {
                                 saveDialog() 
                             }
+                            "Reload previous save (in memory)" -> {
+                                print("Are you sure? (y/N)")
+                                if (readln() == "y") SaveStruct.load()
+                            }
                             else -> {
                                 println(">>>No such choice exists")
                             }
@@ -319,7 +325,7 @@ class KotlinGeneratorListener(
                 }
                 fun loadDialog() {
                     println("Files in current directory:")
-                    val filesInCurrentDir = File(".").listFiles() ?: emptyArray()
+                    val filesInCurrentDir = File(".").listFiles()?.map(File::normalize) ?: emptyList()
                     filesInCurrentDir.forEach {
                         println(it.name)
                     }
@@ -329,10 +335,11 @@ class KotlinGeneratorListener(
                             val filename = readln()
                             if (filename == "") break
                             if (!filesInCurrentDir.contains(File(filename))) {
-                                print("This file des not exist.")
+                                println("This file des not exist.")
+                                continue
                             }
                             lastSave = SaveStruct.readFromFile(File(filename).readLines())
-                            SaveStruct.load()
+                            println("Successfully read save into memory. Use the menu to load it.")
                         } catch(_: Exception) {
                             println("Could not load save.")
                         }
@@ -340,7 +347,7 @@ class KotlinGeneratorListener(
                 }
                 fun saveDialog() {
                     println("Files in current directory:")
-                    val filesInCurrentDir = File(".").listFiles() ?: emptyArray()
+                    val filesInCurrentDir = File(".").listFiles()?.map(File::normalize) ?: emptyList()
                     filesInCurrentDir.forEach {
                         println(it.name)
                     }
