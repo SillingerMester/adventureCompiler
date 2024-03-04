@@ -18,7 +18,7 @@ var lv = 1
 var weapon = nothing
 
 stats {
-    hp gp maxHp atk xp lv weapon
+    charaName hp gp maxHp atk xp lv weapon
 }
 
 inventory {
@@ -27,7 +27,7 @@ inventory {
 
 // We will use this to display stats in fights and save points.
 event displayStats {
-    "$charaName LV$lv HP=$hp/$maxHp gp=$gp ATK=$atk" ->
+    "$charaName LV$lv HP=$hp/$maxHp gp=$gp ATK=$atk weapon=$weapon" ->
 }
 
 // Can't replicate all of the story, so there's no point giving the "determination" talk.
@@ -176,7 +176,7 @@ event floweyIntro {
         }
         floweyRemembers = true // He will remember us the next time,
         save // ... and we want this information be preserved in the save files
-        @[ lastSave = lastSave.copy(location = ruinsEntrance) ]@ // ... without revealing the trickery.
+        @[ lastSave = lastSave.copy(location = ruinsEntrance, storyState = emptyList()) ]@ // ... without revealing the trickery.
         "Flowey: You're new to the Underground, aren' tcha? Golly, you must be so confused."
         "Flowey: Let me show you how things work here."
         trigger floweyFirstFight
@@ -220,14 +220,17 @@ location fightTestRoom {
         }
         trigger froggitFight
     }
-    "You're done."
-    end
+    "You're done with the fights."
+    choices {
+        "Go east" goto artifactRoom
+        "Go west" goto ruinsEntranceStairs
+    }
 }
 
 // Flowey pretends to helpful, but tries to kill you. The only way to win, is to not trust him.
 event floweyFirstFight {
     "For a fleeting moment, you feel like a [heart-shaped object] trapped in a [box], [dodging bullets]." ->
-    "Then you realize it's number all the way down. Trippy..."
+    "Then you realize it's numbers all the way down. Trippy..."
     "Flowey: Your soul starts out weak, but you can become stronger by gaining LV."
     "Flowey: What does LV stand for? Why, LOVE of course!"
     "Flowey: You want some LOVE, don't you? Don't worry, I'll share some with you!"
@@ -282,8 +285,9 @@ event torielSavesYouFromFlowey {
     "Flowey's hurt. He runs away!"
     "$asciiArtToriel" ->
     "Youe're saved by a... goat person? (she calls herself Toriel)" ->
-    "[Just pretend you understand what's happening. I can't be bothered to replicate all the Undertale dialog]"
-    "She gives you direction to her house, then leaves to 'prepare a surprise'. You only have good feelings about this."
+    "[Just pretend you understand what's happening. I can't be bothered to replicate all the Undertale dialogue]"
+    "She gives you direction to her house, then leaves to 'prepare a surprise'." ->
+    "You only have good feelings about this."
 }
 
 // You trusted Flowey. Bad decision.
@@ -323,9 +327,12 @@ story event doggoFight {
                 trigger levelUpCheck
                 finish
             }
+            stayedStill = false
+            "You made a move, Doggo will see you next turn."
         }
         "Try to run" {
             stayedStill = false
+            "You try to run, but Doggo is faster. Since you moved, he'll see you."
         }
         "Stay still" {
             stayedStill = true
@@ -368,6 +375,10 @@ story event doggoFight {
                 conditions { stayedStill }
                 stayStill = stayStill - 1
                 "You stayed still. Doggo couldn't find you." ->
+                branch {
+                    conditions { stayStill <= 0 }
+                    "Doggo has calmed down. You could sneak away now."
+                }
             }
             branch {
                 conditions { !stayedStill }
@@ -394,7 +405,7 @@ location artifactRoom {
         conditions { artifactGone }
         "The artifact is gone."
         choices {
-            "Go back" goto artifactRoom
+            "Go back" goto fightTestRoom
         }
     }
     "Take it?" ->
