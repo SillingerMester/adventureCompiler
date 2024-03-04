@@ -132,6 +132,7 @@ class KotlinGeneratorListener(
         val boilerplate = """
                 // FRAMEWORK CODE
                 //<editor-fold desc="Framework code">
+                @JvmStatic fun main(args: Array<String>) = executeStory()
                 interface Location {
                     val here get() = this
                     fun execute()
