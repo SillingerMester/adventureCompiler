@@ -28,6 +28,7 @@ class KotlinGeneratorListener(
         var inputLinesCnt = 3 //to generate file read logic
         val code = """
             var lastSave: SaveStruct = SaveStruct.save(introduction)
+            val freshStart = lastSave
             data class SaveStruct(
                 val location: Location,
                 val storyState: List<String>,
@@ -53,15 +54,15 @@ class KotlinGeneratorListener(
                         }
                 }
                 companion object {
-                    fun load() {
+                    fun load(what: SaveStruct = lastSave) {
                         clearedStoryEvents.clear()
-                        for (event in lastSave.storyState.reversed()) {
+                        for (event in what.storyState.reversed()) {
                             clearedStoryEvents.push(event)
                         }
                         inventory.clear()
-                        inventory.addAll(lastSave.inventory)
-                        ${statsVariables.joinToString("\n                \t\t") { "$it = lastSave.$it" }}
-                        throw LocationChangeException(lastSave.location)
+                        inventory.addAll(what.inventory)
+                        ${statsVariables.joinToString("\n                \t\t") { "$it = what.$it" }}
+                        throw LocationChangeException(what.location)
                     }
 
                     fun save(location: Location):SaveStruct {
@@ -198,7 +199,11 @@ class KotlinGeneratorListener(
                             println(">>>GAME OVER")
                             print("Would you like to restart? y/N")
                             if (readln() == "y") {
-                                here = introduction
+                                try { 
+                                    SaveStruct.load(freshStart) 
+                                } catch(ex: LocationChangeException) {
+                                    here = ex.newLocation
+                                }
                                 continue
                             }
                             else {
