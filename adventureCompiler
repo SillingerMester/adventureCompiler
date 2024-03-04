@@ -1,0 +1,13 @@
+#!/bin/sh
+kotFile=$2
+
+if [ "$2" = "" ]; then
+    kotFile="Generated.kt"
+fi
+
+outFile=$kotFile.jar
+if [ ! -f adventureCompiler.jar ]; then
+    cp build/libs/adventureCompiler.jar .
+fi
+
+java -jar adventureCompiler.jar "$@" && kotlinc/bin/kotlinc -include-runtime "$kotFile" -d "$outFile" && jar --update --file="$outFile" --main-class=Generated

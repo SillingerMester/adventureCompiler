@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTreeWalker
 import java.io.File
 import kotlin.io.path.Path
+import kotlin.system.exitProcess
 
 //TODO: document item functions being "hidden" features
 //TODO: nem lehet specifikus akciókhoz "költeni" item-eket. Ez nem baj, arra valók a közönséges változók! Leírni, hogy ezt mi motiválja!
@@ -17,14 +18,24 @@ import kotlin.io.path.Path
 //TODO: dicument toString() on item, location
 //TODO: NO CODE INJECTION IN EXPRESSIONS, unless directly under condsitions block --> expressions are outsourced to Kotlin, and @[ ]@ caanot be implemented as functions
 
-fun main() {
-    while(true) {
-        val sourceLastModified = File("example.txt").lastModified()
-        generateKotlin("example.txt", "src/main/kotlin/Generated.kt")
-        while (File("example.txt").lastModified() <= sourceLastModified) {
-            Thread.sleep(5)
+fun main(args: Array<String>) {
+    println("Adventure compiler args=[${args.joinToString(", ")}]")
+    val helpText = "Usage: adventureCompiler <input file> [<output file>]"
+    if (args.contains("--help") || args.contains("-h")) {
+        println(helpText)
+        exitProcess(1)
+    }
+    when(args.size) {
+        0 -> {
+            println(helpText)
+            exitProcess(1)
         }
-        println()
+        1 -> generateKotlin(args[0], "Generated.kt")
+        2 -> generateKotlin(args[0], args[1])
+        else -> {
+            println(helpText)
+            exitProcess(1)
+        }
     }
 }
 

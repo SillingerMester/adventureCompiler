@@ -6,13 +6,42 @@ import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.ParseTreeWalker
 import org.antlr.v4.runtime.tree.TerminalNode
 import java.io.File
+import java.net.URLClassLoader
 import kotlin.io.path.Path
 
 fun main() {
-    Generated.executeStory()
+    generateKotlin("example.txt", "Generated.kt")
+    if (File("kotlinc").isDirectory) {
+        println("Kotlin compiler found, attempting to test game...")
+        if (compileGeneratedProgram("Generated.kt", "Generated.jar") == 0) {
+            println("Compile succesful. Executing program...")
+            runGeneratedProgram("Generated.jar")
+        } else {
+            println("Kotlin compiler returned with error. Aborting.")
+        }
+    } else {
+        println("No kotlin compiler found.")
+    }
 }
 
+fun compileGeneratedProgram(inFile: String, outFile: String): Int {
+    val command = "kotlinc/bin/kotlinc -include-runtime $inFile -d $outFile -verbose && jar --update --file=$outFile --main-class=Generated"
+    return ProcessBuilder("sh", "-c", command)
+        .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+        .redirectError(ProcessBuilder.Redirect.INHERIT)
+        .start().waitFor()
+}
 
+fun runGeneratedProgram(filename: String) {
+    val classLoader = URLClassLoader(arrayOf(File("Generated.jar").toURI().toURL()))
+
+    // Load the class from the classloader by name....
+    val loadedClass = classLoader.loadClass("Generated")
+    // Create a new instance...
+    val obj = loadedClass.getField("INSTANCE")
+    //execute method
+    loadedClass.getDeclaredMethod("executeStory").invoke(obj.get(obj))
+}
 
 fun reDigestTest(inFile: String, outFile: String) {
     val parser = AdventureParser(CommonTokenStream(AdventureLexer(CharStreams.fromPath(Path(inFile)))))
@@ -59,3 +88,4 @@ fun compareParseTrees(tree1: ParserRuleContext, tree2: ParserRuleContext): Boole
     }
     return true
 }
+

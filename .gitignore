@@ -46,3 +46,7 @@ bin/
 ### Mac OS ###
 .DS_Store
 
+/Generated.kt
+/Generated.jar
+/kotlinc
+/savefile.txt
