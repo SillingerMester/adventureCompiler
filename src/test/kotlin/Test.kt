@@ -49,7 +49,7 @@ fun reDigestTest(inFile: String, outFile: String) {
     val tree = parser.adventure()
     println("Parsing complete")
 
-    val listener = VomitListener(StringBuilder())
+    val listener = IndentingListener(StringBuilder())
     ParseTreeWalker.DEFAULT.walk(listener, tree)
     File(outFile).writeText(listener.output.toString())
 
@@ -61,7 +61,7 @@ fun reDigestTest(inFile: String, outFile: String) {
     } else {
         println("trees don't match")
     }
-    val list2 = VomitListener(StringBuilder())
+    val list2 = IndentingListener(StringBuilder())
     ParseTreeWalker.DEFAULT.walk(list2, tree2)
 }
 
