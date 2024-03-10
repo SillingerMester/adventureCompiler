@@ -10,22 +10,23 @@ import java.net.URLClassLoader
 import kotlin.io.path.Path
 
 fun main() {
-    generateKotlin("example.txt", "Generated.kt")
-    if (File("kotlinc").isDirectory) {
-        println("Kotlin compiler found, attempting to test game...")
-        if (compileGeneratedProgram("Generated.kt", "Generated.jar") == 0) {
-            println("Compile succesful. Executing program...")
-            runGeneratedProgram("Generated.jar")
+    if (generateKotlin("example.txt", "Generated.kt")) {
+        if (File("kotlinc").isDirectory) {
+            println("Kotlin compiler found, attempting to test game...")
+            if (compileGeneratedProgram("Generated.kt", "Generated.jar") == 0) {
+                println("Compile succesful. Executing program...")
+                runGeneratedProgram("Generated.jar")
+            } else {
+                println("Kotlin compiler returned with error. Aborting.")
+            }
         } else {
-            println("Kotlin compiler returned with error. Aborting.")
+            println("No kotlin compiler found.")
         }
-    } else {
-        println("No kotlin compiler found.")
     }
 }
 
 fun compileGeneratedProgram(inFile: String, outFile: String): Int {
-    val command = "kotlinc/bin/kotlinc -include-runtime $inFile -d $outFile -verbose && jar --update --file=$outFile --main-class=Generated"
+    val command = "kotlinc/bin/kotlinc -include-runtime $inFile -d $outFile && jar --update --file=$outFile --main-class=Generated"
     return ProcessBuilder("sh", "-c", command)
         .redirectOutput(ProcessBuilder.Redirect.INHERIT)
         .redirectError(ProcessBuilder.Redirect.INHERIT)

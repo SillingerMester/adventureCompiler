@@ -39,7 +39,7 @@ fun main(args: Array<String>) {
     }
 }
 
-fun generateKotlin(inFile: String, outFile: String) {
+fun generateKotlin(inFile: String, outFile: String): Boolean {
     val parser = AdventureParser(CommonTokenStream(AdventureLexer(CharStreams.fromPath(Path(inFile)))))
     val tree = parser.adventure()
     println("Parsing complete")
@@ -55,7 +55,9 @@ fun generateKotlin(inFile: String, outFile: String) {
         ParseTreeWalker.DEFAULT.walk(generator, tree)
         File(outFile).writeText(generator.output.toString())
         println("Generation finished without error.")
+        return true
     } else {
         println("Errors in source. Exiting.")
+        return false
     }
 }

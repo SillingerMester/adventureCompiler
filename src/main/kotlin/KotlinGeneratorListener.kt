@@ -38,7 +38,7 @@ class KotlinGeneratorListener(
                 fun writeToFile(): String {
                     return location::class.simpleName + "\n" + 
                         storyState.joinToString(" ") + "\n" +
-                        inventory.map { it::class.simpleName }.joinToString(" ") + "\n" +
+                        inventory.map { it::class.simpleName }.joinToString(" ") + "\n" ${if (statsVariables.isNotEmpty()) "+" else ""}
                         ${
                             statsVariables.map {
                                 return@map when (symbolTable.getSymbolType(it)) {
@@ -190,7 +190,7 @@ class KotlinGeneratorListener(
                     while (true) {
                         try {
                             here.execute()
-                            return
+                            throw GameOverException()
                         }
                         catch (ex : LocationChangeException) {
                             here = ex.newLocation
@@ -205,8 +205,7 @@ class KotlinGeneratorListener(
                                     here = ex.newLocation
                                 }
                                 continue
-                            }
-                            else {
+                            } else {
                                 return
                             }
                         }
@@ -364,7 +363,7 @@ class KotlinGeneratorListener(
                             val filename = readln()
                             if (filename == "") break
                             if (filesInCurrentDir.contains(File(filename))) {
-                                print("This file already exists. Overwirte? (y/N) ")
+                                print("This file already exists. Overwrite? (y/N) ")
                                 if (readln() != "y") {
                                     println("Not saving")
                                     continue
@@ -652,7 +651,8 @@ class KotlinGeneratorListener(
         if (ctx?.afterChoice() == null)
         {
             output.append("else -> {"); indentLength++
-            indent(); output.append("println(\">>>No such choice exists\")"); indentLength--
+            indent(); output.append("println(\">>>No such choice exists\")");
+            indent(); output.append("continue"); indentLength--
             indent(); output.append("}//else") //else
             indentLength--
             indent(); output.append("}//when") //when
