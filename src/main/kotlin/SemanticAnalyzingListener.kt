@@ -51,11 +51,11 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     }
 
     private fun errorAlreadyDefined(offender: Token) {
-        printError(offender,"Symbol ${offender.text} is already defined!")
+        printError(offender, "Symbol ${offender.text} is already defined!")
     }
 
     private fun errorNotDefined(offender: Token) {
-        printError(offender,"Symbol ${offender.text} is not defined in this scope!")
+        printError(offender, "Symbol ${offender.text} is not defined in this scope!")
     }
 
     // listener interface
@@ -177,6 +177,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     override fun exitIntroduction(ctx: AdventureParser.IntroductionContext?) {
         symbolTable.pop()
     }
+
     override fun enterLocation(ctx: AdventureParser.LocationContext?) {
         symbolTable.push()
     }
@@ -216,6 +217,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     override fun exitBranch(ctx: AdventureParser.BranchContext?) {
         symbolTable.pop()
     }
+
     override fun enterItem(ctx: AdventureParser.ItemContext?) {
         symbolTable.push()
         ctx!!.itemFunction().filterNot {
@@ -283,7 +285,13 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     }
 
     override fun enterBuiltinMax(ctx: AdventureParser.BuiltinMaxContext?) {
-        //do nothing
+        ctx!!.expression()
+            .associateWith(symbolTable::getExpressionType)
+            .forEach {
+                if (it.value != ExpressionType.INT) {
+                    printError(it.key.start, "Int expression required")
+                }
+            }
     }
 
     override fun exitBuiltinMax(ctx: AdventureParser.BuiltinMaxContext?) {
@@ -330,6 +338,16 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     }
 
     override fun exitCodeInjection(ctx: AdventureParser.CodeInjectionContext?) {
+        //do nothing
+    }
+
+    override fun enterBuiltinRandom(ctx: BuiltinRandomContext?) {
+        if (symbolTable.getSymbolType(ctx!!.expression().text) != ExpressionType.INT) {
+            printError(ctx.expression().start, "Int expression required")
+        }
+    }
+
+    override fun exitBuiltinRandom(ctx: BuiltinRandomContext?) {
         //do nothing
     }
 
@@ -395,4 +413,17 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     override fun exitCodeInjectionExpr(ctx: CodeInjectionExprContext?) {
         //do nothing
     }
+
+    override fun enterAssignment(ctx: AssignmentContext?) {
+        val leftType = symbolTable.getSymbolType(ctx!!.ID().text)
+        val rightType = symbolTable.getExpressionType(ctx.expression())
+        if (leftType != rightType) {
+            printError(ctx.ASSIGN().symbol, "cannot assign $leftType variable with $rightType expression")
+        }
+    }
+
+    override fun exitAssignment(ctx: AssignmentContext?) {
+        //do nothing
+    }
+
 }
