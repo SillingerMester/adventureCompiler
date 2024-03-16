@@ -1,8 +1,6 @@
 grammar Adventure;
 
-@header {
-    //package adventure; // Replace with your package name
-}
+@header { }
 
 @members {
     // Import any necessary classes or packages here
