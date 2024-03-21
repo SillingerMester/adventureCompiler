@@ -3,7 +3,7 @@ import adventure.AdventureLexer
 import adventure.AdventureParser
 import org.antlr.v4.runtime.tree.TerminalNode
 
-class IndentingListener(val output: StringBuilder) : AdventureBaseListener() {
+class IndentingListener(val output: StringBuilder) : AdventureBaseListener() { /* formerly known as VomitListener */
     private var indentLength = 0
     private fun indent() {
         output.append("\n")

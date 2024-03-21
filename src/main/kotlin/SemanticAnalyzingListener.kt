@@ -342,7 +342,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     }
 
     override fun enterBuiltinRandom(ctx: BuiltinRandomContext?) {
-        if (symbolTable.getSymbolType(ctx!!.expression().text) != ExpressionType.INT) {
+        if (symbolTable.getExpressionType(ctx!!.expression()) != ExpressionType.INT) {
             printError(ctx.expression().start, "Int expression required")
         }
     }
@@ -405,7 +405,7 @@ open class SemanticAnalyzingListener : AdventureBaseListener() {
     }
 
     override fun enterCodeInjectionExpr(ctx: CodeInjectionExprContext?) {
-        if (ctx!!.parent.parent::class != ConditionsBlockContext::class) {
+        if (ctx!!.parent.parent !is ConditionsBlockContext) {
             printError(ctx.start, "code injection expressions are illegal when not directly under conditions block")
         }
     }
