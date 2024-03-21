@@ -31,6 +31,13 @@ tasks {
     compileKotlin {
         dependsOn(generateGrammarSource)
     }
+    generateTestGrammarSource {
+        outputDirectory = outputDirectory.resolve(antlrGeneratedDir)
+        arguments = arguments + listOf("-package", "adventure")
+    }
+    compileTestKotlin {
+        dependsOn(generateTestGrammarSource)
+    }
     jar {
         manifest.attributes["Main-Class"] = "MainKt"
         val dependencies = configurations
