@@ -34,7 +34,7 @@ fun compileGeneratedProgram(inFile: String, outFile: String): Int {
 }
 
 fun runGeneratedProgram(filename: String) {
-    val classLoader = URLClassLoader(arrayOf(File("Generated.jar").toURI().toURL()))
+    val classLoader = URLClassLoader(arrayOf(File(filename).toURI().toURL()))
 
     // Load the class from the classloader by name....
     val loadedClass = classLoader.loadClass("Generated")

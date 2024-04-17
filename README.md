@@ -5,14 +5,7 @@ A tool for creating games with the AdventureScript DSL.
 ## Build instructions
 
 - Import project into IntelliJ Idea
-- Install ANTLR plugin into the IDE
-- Open the Adventure.g4 file, right click, select "Configure ANTLR"
-  - set output directory to **src/gen**
-  - set input directory to **src/main/antlr**
-  - set package name to **adventure**
-  - set language to **Java**
-- Use the plugin to "Generate ANTLR recognizer"
-- Select **MainKt** as the "run configuration"
+- Select either the **MainKt** class or **gradle run** in the IDE
 - To get the JAR
   - open the gradle panel from the IDE
   - execute **tasks** --> **build** --> **jar**

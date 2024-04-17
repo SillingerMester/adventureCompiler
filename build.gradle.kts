@@ -31,11 +31,13 @@ tasks {
     compileKotlin {
         dependsOn(generateGrammarSource)
     }
-    generateTestGrammarSource {
-        outputDirectory = outputDirectory.resolve(antlrGeneratedDir)
-        arguments = arguments + listOf("-package", "adventure")
+    compileJava {
+        dependsOn(generateGrammarSource)
     }
     compileTestKotlin {
+        dependsOn(generateTestGrammarSource)
+    }
+    compileTestJava {
         dependsOn(generateTestGrammarSource)
     }
     jar {

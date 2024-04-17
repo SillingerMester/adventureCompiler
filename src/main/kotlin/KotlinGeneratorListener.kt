@@ -475,10 +475,8 @@ class KotlinGeneratorListener(
 
     override fun enterNamedEvent(ctx: AdventureParser.NamedEventContext?) {
         super.enterNamedEvent(ctx)
-        if (ctx?.STORY() != null) {
-            output.append("val ${ctx.ID().text} = \"${ctx.ID().text}\"")
-            indent()
-        }
+        output.append("val ${ctx?.ID()?.text} = \"${ctx?.ID()?.text}\"")
+        indent()
         output.append("fun ${ctx?.ID()?.text}Event(here: Location) {")
         indentLength++
         indent()

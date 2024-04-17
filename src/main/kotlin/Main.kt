@@ -7,17 +7,6 @@ import java.io.File
 import kotlin.io.path.Path
 import kotlin.system.exitProcess
 
-//TODO: document item functions being "hidden" features
-//TODO: nem lehet specifikus akciókhoz "költeni" item-eket. Ez nem baj, arra valók a közönséges változók! Leírni, hogy ezt mi motiválja!
-//TODO: tényleges build rendszer a generált kódnak
-//TODO: document  MainMenu (és hogy miért szerepel mindenhol)
-//TODO: főmenüvel lehet csalni, mert akárhány item akciót egynek számol. megindokolni hogy ezzel miért nem foglalkozok
-//TODO: vagy kikötöm, hogy a főmenüt ne lehessen akárhol megynitni. megéri?
-//TODO: dokumentálni, hogy az after() miatt vannak konstansok az event nevével
-//TODO: dokumentálni az after() warning-ját
-//TODO: dicument toString() on item, location
-//TODO: NO CODE INJECTION IN EXPRESSIONS, unless directly under condsitions block --> expressions are outsourced to Kotlin, and @[ ]@ caanot be implemented as functions
-
 fun main(args: Array<String>) {
     println("Adventure compiler args=[${args.joinToString(", ")}]")
     val helpText = "Usage: adventureCompiler <input file> [<output file>]"
