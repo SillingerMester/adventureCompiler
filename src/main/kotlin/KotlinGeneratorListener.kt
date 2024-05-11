@@ -664,7 +664,8 @@ class KotlinGeneratorListener(
     override fun enterAfterChoice(ctx: AdventureParser.AfterChoiceContext?) {
         super.enterAfterChoice(ctx)
         output.append("else -> {"); indentLength++
-        indent(); output.append("println(\">>>No such choice exists\")"); indentLength--
+        indent(); output.append("println(\">>>No such choice exists\")")
+        indent(); output.append("continue"); indentLength--
         indent(); output.append("}//else") //else
         indentLength--
         indent(); output.append("}//when") //when

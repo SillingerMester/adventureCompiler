@@ -37,8 +37,11 @@ fun generateKotlin(inFile: String, outFile: String): Boolean {
     val checker = SemanticAnalyzingListener()
     ParseTreeWalker.DEFAULT.walk(checker, tree)
 
-    if (!checker.error && !checker.warning) {
-        println("Everything is OK. Generating file...")
+    if (!checker.error) {
+        if(!checker.warning)
+            println("Everything is OK. Generating file...")
+        else
+            println("No fatal errors. Generating file...")
 
         val generator = KotlinGeneratorListener(StringBuilder())
         ParseTreeWalker.DEFAULT.walk(generator, tree)

@@ -198,7 +198,14 @@ location ruinsEntranceStairs {
         "Go west" goto ruinsEntranceFlowey
         "Touch the orb" {
             "You touch the orb. The warmth spreads through you. (all injuries healed)"
-            "You're filled with Determination. (savepoint reached)"
+            branch {
+                conditions { lv > 1 }
+                "DETERMINATION"
+            }
+            branch {
+                conditions { lv == 1 }
+                "You're filled with Determination. (savepoint reached)"
+            }
             hp = maxHp
             trigger displayStats
             save
@@ -214,12 +221,6 @@ location ruinsEntranceStairs {
 location fightTestRoom {
     "This is the fight test room. You will fight here."
     trigger doggoFight
-    story event {
-        conditions {
-            after(doggoFight)
-        }
-        trigger froggitFight
-    }
     "You're done with the fights."
     choices {
         "Go east" goto artifactRoom
@@ -391,11 +392,6 @@ story event doggoFight {
             trigger displayStats
         }
     }
-}
-
-
-event froggitFight {
-
 }
 
 var artifactGone = false
