@@ -18,8 +18,11 @@ A tool for creating games with the AdventureScript DSL.
 ## Usage
 
 - Install java, if you haven't already
-- Download a Kotlin compiler
+- Download a Kotlin compiler from the GitHub releases
   - https://kotlinlang.org/docs/command-line.html
+  - grab a multiplatform zip, such as
+    - https://github.com/JetBrains/kotlin/releases/download/v2.0.0/kotlin-compiler-2.0.0.zip
+  - extract it into the project root
 - Prepare a directory which contains
   - **adventureCompiler.jar** (which you've built)
   - **kotlinc** (which you've extracted)
